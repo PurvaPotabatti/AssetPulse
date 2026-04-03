@@ -1,4 +1,9 @@
+import { useNavigate } from "react-router-dom";
+
 export default function Header() {
+
+  const navigate = useNavigate();
+
   return (
     <header className="header">
       <div className="logo">
@@ -19,11 +24,21 @@ export default function Header() {
             fill="none"
           />
         </svg>
-        AssetPulse
+        <span>Asset<span style={{ color: 'hsl(214,80%,51%)' }}>Pulse</span></span>
       </div>
       <div className="nav-buttons">
-        <button className="login-btn">Login</button>
-        <button className="primary-btn">Get Started</button>
+          <button
+            className="login-btn"
+            onClick={() => navigate("/login")}
+          >
+            Login
+          </button>
+          <button
+            className="primary-btn"
+            onClick={() => navigate("/register")}
+          >
+            Get Started
+          </button>
       </div>
     </header>
   );

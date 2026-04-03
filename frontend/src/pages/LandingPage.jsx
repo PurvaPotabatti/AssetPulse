@@ -1,5 +1,6 @@
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
+import { useNavigate } from "react-router-dom";
 
 const AssetTrackingIcon = () => (
   <svg width="40" height="40" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -73,6 +74,7 @@ const ReportsIcon = () => (
   </svg>
 );
 
+
 const features = [
   {
     icon: <AssetTrackingIcon />,
@@ -97,11 +99,15 @@ const features = [
 ];
 
 export default function LandingPage() {
+
+  const navigate = useNavigate();
+  
   return (
     <div className="page-wrapper">
       <Header />
 
       <section className="hero">
+        <div className = "container">
         <h1>
           Manage and Track All
           <br />
@@ -113,8 +119,20 @@ export default function LandingPage() {
           maintenance, and manage assignments efficiently.
         </p>
         <div className="hero-buttons">
-          <button className="primary-btn">Get Started</button>
-          <button className="secondary-btn">Login</button>
+          <button
+            className="primary-btn hero-btn"
+            onClick={() => navigate("/register")}
+          >
+            Get Started
+          </button>
+
+          <button
+            className="secondary-btn hero-btn"
+            onClick={() => navigate("/login")}
+          >
+            Login
+          </button>
+        </div>
         </div>
       </section>
 
