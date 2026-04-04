@@ -21,7 +21,7 @@ export const adminNavItems = [
 export const employeeNavItems = [
   { icon: LayoutDashboard, label: 'Dashboard', key: 'emp-dashboard' },
   { icon: Tag, label: 'My Assets', key: 'emp-assets' },
-  { icon: Wrench, label: 'Report Issue', key: 'emp-report' },
+  // { icon: Wrench, label: 'Report Issue', key: 'emp-report' },
   { icon: ClipboardList, label: 'My Requests', key: 'emp-requests' },
   { icon: FolderOpen, label: 'Profile', key: 'emp-profile' },
 ];
