@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { adminNavItems, employeeNavItems } from "./Sidebar";
+import { useAuth } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 import Topbar from './Topbar';
 import AssetsPage from "../../pages/admin/AssetsPage";
 import EmployeesPage from '../../pages/admin/EmployeesPage';
@@ -11,6 +13,7 @@ import MyAssetsPage from "../../pages/employee/MyAssetsPage";
 import MyRequestPage from "../../pages/employee/MyRequestPage";
 import ProfilePage from "../../pages/employee/ProfilePage";
 import Sidebar from "./Sidebar";
+
 
 const pageTitles = {
   // admin
@@ -27,20 +30,23 @@ const pageTitles = {
   'emp-profile':   'Profile',
 };
 
-const user = {
-  name:   'Purva Potabatti',
-  role:   'Administrator',
-  avatar: 'https://i.pravatar.cc/80?img=12',
-};
+
 
 const DashboardLayout = ({ role = "admin" }) => {
+  
   const navItems = role === "admin" ? adminNavItems : employeeNavItems;
+
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const [activeNav,   setActiveNav]   = useState(role === "admin" ? "dashboard" : "emp-dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleNavChange = (key) => { setActiveNav(key); setSidebarOpen(false); };
-  const handleLogout    = () => alert('Logging out…');
+  const handleLogout = () => {
+  logout();          // removes user from localStorage
+  navigate("/login");
+  };
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') setSidebarOpen(false); };

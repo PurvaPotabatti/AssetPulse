@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from "react-router-dom";
+import API from "../api/axiosConfig";
 
 /* SVG icons (inline, no deps) */
 const Icon = {
@@ -85,14 +86,32 @@ const RegisterPage = () => {
 
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
 
-    e.preventDefault();
+      e.preventDefault();
 
-    if (!validate())
-        return;
+      if (!validate()) return;
 
-    console.log("Valid form:", form);
+      try {
+
+        const response = await API.post("/auth/register", form);
+
+        console.log("Register success:", response.data);
+
+        alert("Admin registered successfully");
+
+        navigate("/login");
+
+      } catch (error) {
+
+        console.error(error);
+
+        alert(
+          error.response?.data?.message ||
+          "Registration failed"
+        );
+
+      }
 
     };
 

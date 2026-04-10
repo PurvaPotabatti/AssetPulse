@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import API from "../api/axiosConfig";
+import { useAuth } from "../context/AuthContext";
 
 /* SVG icons */
 const Icon = {
@@ -20,6 +22,8 @@ const Icon = {
 const LoginPage = () => {
 
   const navigate = useNavigate();
+
+  const { login } = useAuth(); 
 
   const [form, setForm] = useState({
     email: "",
@@ -71,16 +75,51 @@ const LoginPage = () => {
 
     };
 
-  const handleSubmit = (e) => {
+const handleSubmit = async (e) => {
 
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!validate())
-      return;
+  if (!validate()) return;
 
-    console.log("Login data:", form);
+  try {
 
-  };
+    const response = await API.post("/auth/login", form);
+
+    console.log("Login success:", response.data);
+
+    const user = response.data;
+
+    login(user);
+
+    alert("Login successful");
+
+    /*
+      redirect based on role
+    */
+    if(user.role === "ADMIN") {
+
+      navigate("/admin");
+
+    }
+    else {
+
+      navigate("/employee");
+
+    }
+
+  }
+  catch(error) {
+
+    console.error(error);
+
+    alert(
+      error.response?.data?.message ||
+      "Invalid email or password"
+    );
+
+  }
+
+};
 
   return (
 

@@ -3,12 +3,17 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import AdminDashboard from "./pages/admin/AdminDashboard";
+
 import DashboardLayout from "./components/layout/DashboardLayout";
 
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+
 function App() {
+
   return (
+
     <Router>
+
       <Routes>
 
         <Route path="/" element={<LandingPage />} />
@@ -17,13 +22,46 @@ function App() {
 
         <Route path="/register" element={<RegisterPage />} />
 
-        <Route path="/admin/*" element={<DashboardLayout role="admin" />} />
 
-        <Route path="/employee/*" element={<DashboardLayout role="employee" />} />
+
+        {/* ADMIN ROUTES */}
+        <Route
+          path="/admin/*"
+          element={
+
+            <ProtectedRoute allowedRole="ADMIN">
+
+              <DashboardLayout role="admin" />
+
+            </ProtectedRoute>
+
+          }
+        />
+
+
+
+        {/* EMPLOYEE ROUTES */}
+        <Route
+          path="/employee/*"
+          element={
+
+            <ProtectedRoute allowedRole="EMPLOYEE">
+
+              <DashboardLayout role="employee" />
+
+            </ProtectedRoute>
+
+          }
+        />
+
+
 
       </Routes>
+
     </Router>
+
   );
+
 }
 
 export default App;
