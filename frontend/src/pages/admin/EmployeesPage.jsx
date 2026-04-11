@@ -1,55 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Search, ChevronDown, Plus, Pencil, Trash2 } from 'lucide-react';
+import API from "../../api/axiosConfig";
+import { useAuth } from "../../context/AuthContext";
 
-const initialEmployees = [
-  {
-    id: 1,
-    name: 'Sarah Johnson',
-    employeeId: 'EMP001',
-    department: 'IT Dept',
-    role: 'Software Engineer',
-    email: 'sarah.johnson@example.com',
-    status: 'Active',
-  },
-  {
-    id: 2,
-    name: 'David Smith',
-    employeeId: 'EMP002',
-    department: 'HR Dept',
-    role: 'HR Manager',
-    email: 'david.smith@example.com',
-    status: 'Active',
-  },
-  {
-    id: 3,
-    name: 'Lisa Brown',
-    employeeId: 'EMP004',
-    department: 'Sales',
-    role: 'Sales Executive',
-    email: 'lisa.brown@example.com',
-    status: 'Active',
-  },
-  {
-    id: 4,
-    name: 'Mark Taylor',
-    employeeId: 'EMP003',
-    department: 'IT Dept',
-    role: 'System Administrator',
-    email: 'mark.taylor@example.com',
-    status: 'Active',
-  },
-  {
-    id: 5,
-    name: 'Emma Wilson',
-    employeeId: 'EMP005',
-    department: 'Finance',
-    role: 'Accountant',
-    email: 'emma.wilson@example.com',
-    status: 'Inactive',
-  },
-];
-
-const DEPARTMENTS = ['All Departments', 'IT Dept', 'HR Dept', 'Sales', 'Finance'];
 const STATUSES    = ['All Status', 'Active', 'Inactive'];
 
 const statusStyle = {
@@ -70,7 +23,14 @@ const truncateEmail = (email) => {
 const EmployeeModal = ({ employee, onClose, onSave }) => {
   const isEdit = !!employee?.id;
   const [form, setForm] = useState(
-    employee || { name: '', employeeId: '', department: 'IT Dept', role: '', email: '', status: 'Active' }
+    employee || {
+      name: '',
+      employeeId: '',
+      department: '',
+      role: '',
+      email: '',
+      status: 'Active'
+    }
   );
 
   const set = (key, val) => setForm(f => ({ ...f, [key]: val }));
@@ -83,8 +43,6 @@ const EmployeeModal = ({ employee, onClose, onSave }) => {
         <div className="ap-modal-fields">
           {[
             { label: 'Full Name',    key: 'name',       type: 'text' },
-            { label: 'Employee ID',  key: 'employeeId', type: 'text' },
-            { label: 'Role',         key: 'role',       type: 'text' },
             { label: 'Email',        key: 'email',      type: 'email' },
           ].map(({ label, key, type }) => (
             <div key={key} className="ap-modal-field">
@@ -99,15 +57,23 @@ const EmployeeModal = ({ employee, onClose, onSave }) => {
           ))}
 
           {[
-            { label: 'Department', key: 'department', opts: ['IT Dept', 'HR Dept', 'Sales', 'Finance'] },
-            { label: 'Status',     key: 'status',     opts: ['Active', 'Inactive'] },
-          ].map(({ label, key, opts }) => (
+            { label: 'Department (optional)', key: 'department', type: 'text' },
+            { label: 'Designation (optional)', key: 'role', type: 'text' }
+          ].map(({ label, key, type }) => (
+
             <div key={key} className="ap-modal-field">
+
               <label className="ap-modal-label">{label}</label>
-              <select className="ap-modal-input" value={form[key]} onChange={e => set(key, e.target.value)}>
-                {opts.map(o => <option key={o}>{o}</option>)}
-              </select>
+
+              <input
+                className="ap-modal-input"
+                type="text"
+                value={form[key] || ""}
+                onChange={e => set(key, e.target.value)}
+              />
+
             </div>
+
           ))}
         </div>
 
@@ -124,33 +90,123 @@ const EmployeeModal = ({ employee, onClose, onSave }) => {
 
 /* ── Main ── */
 const EmployeesPage = () => {
-  const [employees, setEmployees] = useState(initialEmployees);
+  const [employees, setEmployees] = useState([]);
   const [search, setSearch]       = useState('');
-  const [department, setDept]     = useState('All Departments');
   const [status, setStatus]       = useState('All Status');
   const [modal, setModal]         = useState(null);
+  const { user } = useAuth();
 
-  const filtered = employees.filter(e => {
-    const matchSearch = e.name.toLowerCase().includes(search.toLowerCase()) ||
-                        e.employeeId.toLowerCase().includes(search.toLowerCase()) ||
-                        e.email.toLowerCase().includes(search.toLowerCase());
-    const matchDept   = department === 'All Departments' || e.department === department;
-    const matchStatus = status     === 'All Status'      || e.status     === status;
-    return matchSearch && matchDept && matchStatus;
-  });
+    useEffect(() => {
+    fetchEmployees();
+  }, []);
 
-  const handleSave = (form) => {
-    if (form.id) {
-      setEmployees(prev => prev.map(e => e.id === form.id ? form : e));
-    } else {
-      setEmployees(prev => [...prev, { ...form, id: Date.now() }]);
+const fetchEmployees = async () => {
+
+  try {
+
+    const response = await API.get(`/users/${user.userId}`);
+
+    /*
+      map backend fields to UI fields
+    */
+    const mapped = response.data.map(u => ({
+      id: u.id,
+      name: u.name,
+      employeeId: u.id.slice(-5), // temporary
+      department: u.department,
+      role: u.designation,
+      email: u.email,
+      status: u.status === "ACTIVE" ? "Active" : "Inactive"
+    }));
+
+    setEmployees(mapped);
+
+  }
+  catch(err) {
+
+    console.error(err);
+
+  }
+
+};
+
+const filtered = employees.filter(e => {
+
+  const matchSearch =
+    e.name.toLowerCase().includes(search.toLowerCase()) ||
+    e.employeeId.toLowerCase().includes(search.toLowerCase()) ||
+    e.email.toLowerCase().includes(search.toLowerCase());
+
+  const matchStatus =
+    status === 'All Status' || e.status === status;
+
+  return matchSearch && matchStatus;
+
+});
+
+const handleSave = async (form) => {
+
+  try {
+
+    /*
+      CREATE employee
+    */
+    if (!form.id) {
+
+      await API.post("/users", {
+
+        name: form.name,
+        email: form.email,
+        password: "Welcome@123",
+        phone: null,
+        department: form.department || null,
+        designation: form.role || null,
+        adminId: user.userId   // NEW
+
+      });
+
     }
-    setModal(null);
-  };
 
-  const handleDelete = (id) => {
-    if (window.confirm('Delete this employee?')) setEmployees(prev => prev.filter(e => e.id !== id));
-  };
+    /*
+      UPDATE employee (later)
+    */
+    else {
+
+      console.log("edit later");
+
+    }
+
+    fetchEmployees();
+
+    setModal(null);
+
+  }
+  catch(err) {
+
+    console.error(err);
+
+    alert("Error saving employee");
+
+  }
+
+};
+
+const handleDelete = async (id) => {
+
+  try {
+
+    await API.delete(`/users/${id}`);
+
+    fetchEmployees();
+
+  }
+  catch(err) {
+
+    console.error(err);
+
+  }
+
+};
 
   return (
     <div className="ap-page">
@@ -174,13 +230,6 @@ const EmployeesPage = () => {
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
-        </div>
-
-        <div className="ap-select-wrap">
-          <select className="ap-select" value={department} onChange={e => setDept(e.target.value)}>
-            {DEPARTMENTS.map(d => <option key={d}>{d}</option>)}
-          </select>
-          <ChevronDown size={15} className="ap-select-icon" />
         </div>
 
         <div className="ap-select-wrap">
@@ -212,8 +261,13 @@ const EmployeesPage = () => {
                 <tr key={emp.id} className={`ap-tr ${i % 2 === 1 ? 'ap-tr-alt' : ''}`}>
                   <td className="ap-td ap-td-name">{emp.name}</td>
                   <td className="ap-td">{emp.employeeId}</td>
-                  <td className="ap-td">{emp.department}</td>
-                  <td className="ap-td emp-role-cell">{emp.role}</td>
+                  <td className="ap-td">
+                    {emp.department || "—"}
+                  </td>
+
+                  <td className="ap-td emp-role-cell">
+                    {emp.role || "—"}
+                  </td>
                   <td className="ap-td">
                     <div className="emp-email-wrap">
                       <span className="emp-email-local">{local}</span>

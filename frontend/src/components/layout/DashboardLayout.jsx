@@ -39,13 +39,29 @@ const DashboardLayout = ({ role = "admin" }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const [activeNav,   setActiveNav]   = useState(role === "admin" ? "dashboard" : "emp-dashboard");
+  const [activeNav, setActiveNav] = useState(() => {
+
+    const savedNav = localStorage.getItem("activeNav");
+
+    if(savedNav) return savedNav;
+
+    return role === "admin"
+      ? "dashboard"
+      : "emp-dashboard";
+
+  });
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const handleNavChange = (key) => { setActiveNav(key); setSidebarOpen(false); };
+  const handleNavChange = (key) => {
+    setActiveNav(key);
+    localStorage.setItem("activeNav", key);
+    setSidebarOpen(false);
+  };
+
   const handleLogout = () => {
-  logout();          // removes user from localStorage
-  navigate("/login");
+    logout();
+    localStorage.removeItem("activeNav");
+    navigate("/login");
   };
 
   useEffect(() => {

@@ -2,33 +2,31 @@ import { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext();
 
-/*
-    AuthProvider wraps entire app
-    provides login/logout functionality
-*/
 export const AuthProvider = ({ children }) => {
 
   const [user, setUser] = useState(null);
 
+  const [loading, setLoading] = useState(true);
+
+
   /*
-      Load user from localStorage
-      when app starts
+     load user from localStorage
   */
   useEffect(() => {
 
     const storedUser = localStorage.getItem("user");
 
-    if(storedUser) {
+    if (storedUser) {
+
       setUser(JSON.parse(storedUser));
+
     }
+
+    setLoading(false);
 
   }, []);
 
 
-  /*
-      login function
-      stores user in localStorage
-  */
   const login = (userData) => {
 
     localStorage.setItem(
@@ -41,10 +39,6 @@ export const AuthProvider = ({ children }) => {
   };
 
 
-  /*
-      logout function
-      clears localStorage
-  */
   const logout = () => {
 
     localStorage.removeItem("user");
@@ -60,7 +54,8 @@ export const AuthProvider = ({ children }) => {
       value={{
         user,
         login,
-        logout
+        logout,
+        loading
       }}
     >
 
@@ -73,9 +68,6 @@ export const AuthProvider = ({ children }) => {
 };
 
 
-/*
-    custom hook
-*/
 export const useAuth = () => {
 
   return useContext(AuthContext);
