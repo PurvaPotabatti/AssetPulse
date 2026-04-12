@@ -21,6 +21,9 @@ const truncateEmail = (email) => {
 
 /* ── Modal ── */
 const EmployeeModal = ({ employee, onClose, onSave }) => {
+
+  const [errors, setErrors] = useState({});
+
   const isEdit = !!employee?.id;
   const [form, setForm] = useState(
     employee || {
@@ -35,26 +38,75 @@ const EmployeeModal = ({ employee, onClose, onSave }) => {
 
   const set = (key, val) => setForm(f => ({ ...f, [key]: val }));
 
+  const validate = () => {
+
+    let newErrors = {};
+
+    if (!form.name.trim())
+      newErrors.name = "Name required";
+
+    if (!form.email.trim())
+      newErrors.email = "Email required";
+
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+      newErrors.email = "Invalid email";
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+  };
+
+
   return (
     <div className="ap-modal-overlay" onClick={onClose}>
       <div className="ap-modal" onClick={e => e.stopPropagation()}>
         <h2 className="ap-modal-title">{isEdit ? 'Edit Employee' : 'Add New Employee'}</h2>
 
         <div className="ap-modal-fields">
-          {[
-            { label: 'Full Name',    key: 'name',       type: 'text' },
-            { label: 'Email',        key: 'email',      type: 'email' },
-          ].map(({ label, key, type }) => (
-            <div key={key} className="ap-modal-field">
-              <label className="ap-modal-label">{label}</label>
-              <input
-                className="ap-modal-input"
-                type={type}
-                value={form[key]}
-                onChange={e => set(key, e.target.value)}
-              />
-            </div>
-          ))}
+
+
+          <div className="ap-modal-field">
+
+            <label className="ap-modal-label">
+              Full Name
+            </label>
+
+            <input
+              className="ap-modal-input"
+              type="text"
+              value={form.name}
+              onChange={e => set('name', e.target.value)}
+            />
+
+            {errors.name && (
+              <span className="ap-error-text">
+                {errors.name}
+              </span>
+            )}
+
+          </div>
+
+
+          <div className="ap-modal-field">
+
+            <label className="ap-modal-label">
+              Email
+            </label>
+
+            <input
+              className="ap-modal-input"
+              type="email"
+              value={form.email}
+              onChange={e => set('email', e.target.value)}
+            />
+
+            {errors.email && (
+              <span className="ap-error-text">
+                {errors.email}
+              </span>
+            )}
+
+          </div>
 
           {[
             { label: 'Department (optional)', key: 'department', type: 'text' },
@@ -75,11 +127,33 @@ const EmployeeModal = ({ employee, onClose, onSave }) => {
             </div>
 
           ))}
+          <div className="ap-modal-field">
+
+            <label className="ap-modal-label">Status</label>
+
+            <select
+              className="ap-modal-input"
+              value={form.status}
+              onChange={e => set('status', e.target.value)}
+            >
+
+              <option>Active</option>
+              <option>Inactive</option>
+
+            </select>
+
+          </div>
         </div>
 
         <div className="ap-modal-actions">
           <button className="ap-cancel-btn" onClick={onClose}>Cancel</button>
-          <button className="ap-save-btn" onClick={() => onSave(form)}>
+          <button
+            className="ap-save-btn"
+            onClick={() => {
+              if(!validate()) return;
+              onSave(form);
+            }}
+          >
             {isEdit ? 'Save Changes' : 'Add Employee'}
           </button>
         </div>
@@ -95,7 +169,7 @@ const EmployeesPage = () => {
   const [status, setStatus]       = useState('All Status');
   const [modal, setModal]         = useState(null);
   const { user } = useAuth();
-
+ 
     useEffect(() => {
     fetchEmployees();
   }, []);
@@ -112,7 +186,7 @@ const fetchEmployees = async () => {
     const mapped = response.data.map(u => ({
       id: u.id,
       name: u.name,
-      employeeId: u.id.slice(-5), // temporary
+      employeeId: u.employeeId, // temporary
       department: u.department,
       role: u.designation,
       email: u.email,
@@ -172,8 +246,15 @@ const handleSave = async (form) => {
     */
     else {
 
-      console.log("edit later");
-
+      await API.put(`/users/${form.id}`, {
+        name: form.name,
+        email: form.email,   
+        department: form.department || null,
+        designation: form.role || null,
+        status: form.status === "Active"
+                  ? "ACTIVE"
+                  : "INACTIVE"
+      });
     }
 
     fetchEmployees();

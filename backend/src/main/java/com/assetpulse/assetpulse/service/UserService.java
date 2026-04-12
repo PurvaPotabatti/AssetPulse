@@ -41,6 +41,19 @@ public class UserService {
                 .findByRoleName("EMPLOYEE")
                 .orElseThrow(() -> new RuntimeException("EMPLOYEE role not found"));
 
+        /*
+           generate employee id
+        */
+        long count = userRepository.countByRoleId(employeeRole.getId()) + 1;
+
+        String year = String.valueOf(LocalDateTime.now().getYear());
+
+        String employeeCode = String.format(
+                "EMP-%s-%04d",
+                year,
+                count
+        );
+
         String hashedPassword = passwordEncoder.encode(request.getPassword());
 
         User user = new User();
@@ -70,14 +83,15 @@ public class UserService {
 
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
-
+        user.setEmployeeId(employeeCode);
         userRepository.save(user);
 
         return new AuthResponse(
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
-                employeeRole.getRoleName()
+                employeeRole.getRoleName(),
+                null
         );
     }
 
@@ -100,6 +114,52 @@ public class UserService {
     public void deleteEmployee(String id) {
 
         userRepository.deleteById(id);
+
+    }
+
+    public User updateEmployee(String id, CreateUserRequest request) {
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
+
+    /*
+       check if email is changed
+    */
+        if(request.getEmail() != null &&
+                !request.getEmail().equals(user.getEmail())) {
+
+        /*
+           prevent duplicate email
+        */
+            if(userRepository.existsByEmail(request.getEmail())) {
+
+                throw new RuntimeException("Email already exists");
+
+            }
+
+            user.setEmail(request.getEmail());
+
+        }
+
+        user.setName(request.getName());
+
+        user.setDepartment(
+                request.getDepartment() == null || request.getDepartment().isBlank()
+                        ? null
+                        : request.getDepartment()
+        );
+
+        user.setDesignation(
+                request.getDesignation() == null || request.getDesignation().isBlank()
+                        ? null
+                        : request.getDesignation()
+        );
+
+        user.setStatus(request.getStatus());
+
+        user.setUpdatedAt(LocalDateTime.now());
+
+        return userRepository.save(user);
 
     }
 

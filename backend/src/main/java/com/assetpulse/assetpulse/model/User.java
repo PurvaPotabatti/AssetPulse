@@ -35,6 +35,8 @@ public class User {
 
     private LocalDateTime updatedAt;
 
+    private String employeeId;
+
     public User() {
     }
 
@@ -78,6 +80,10 @@ public class User {
 
     public String getRoleId() {
         return roleId;
+    }
+
+    public String getEmployeeId() {
+        return employeeId;
     }
 
     public String getDepartment() {
@@ -158,5 +164,9 @@ public class User {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public void setEmployeeId(String employeeId) {
+        this.employeeId = employeeId;
     }
 }

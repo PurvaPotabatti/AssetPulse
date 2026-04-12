@@ -9,6 +9,7 @@ public class CreateUserRequest {
     private String department;
     private String designation;
     private String adminId;
+    private String status;
 
     public CreateUserRequest() {}
 
@@ -19,6 +20,7 @@ public class CreateUserRequest {
     public String getDepartment() { return department; }
     public String getDesignation() { return designation; }
     public String getAdminId() { return adminId; }   // NEW
+    public String getStatus() { return status; }
 
 
     public void setName(String name) { this.name = name; }
@@ -28,4 +30,5 @@ public class CreateUserRequest {
     public void setDepartment(String department) { this.department = department; }
     public void setDesignation(String designation) { this.designation = designation; }
     public void setAdminId(String adminId) { this.adminId = adminId; }   // NEW
+    public void setStatus(String status) { this.status = status; }
 }

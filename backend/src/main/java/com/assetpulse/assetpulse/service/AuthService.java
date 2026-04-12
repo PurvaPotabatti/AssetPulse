@@ -8,6 +8,7 @@ import com.assetpulse.assetpulse.model.User;
 import com.assetpulse.assetpulse.repository.RoleRepository;
 import com.assetpulse.assetpulse.repository.UserRepository;
 
+import com.assetpulse.assetpulse.security.JwtUtil;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -19,12 +20,14 @@ public class AuthService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
     public AuthService(UserRepository userRepository,
-                       RoleRepository roleRepository) {
+                       RoleRepository roleRepository, JwtUtil jwtUtil) {
 
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.jwtUtil = jwtUtil;
         this.passwordEncoder = new BCryptPasswordEncoder();
     }
 
@@ -79,7 +82,8 @@ public class AuthService {
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
-                adminRole.getRoleName()
+                adminRole.getRoleName(),
+                null
         );
     }
 
@@ -107,11 +111,16 @@ public class AuthService {
         user.setLastLogin(LocalDateTime.now());
         userRepository.save(user);
 
+        String token = jwtUtil.generateToken(
+                user.getId(),
+                role.getRoleName()
+        );
+
         return new AuthResponse(
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
-                role.getRoleName()
-        );
-    }
+                role.getRoleName(),
+                token
+        );    }
 }

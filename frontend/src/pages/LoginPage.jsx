@@ -87,7 +87,20 @@ const handleSubmit = async (e) => {
 
     console.log("Login success:", response.data);
 
-    const user = response.data;
+    const user = {
+
+      userId: response.data.userId,
+
+      name: response.data.name,
+
+      email: response.data.email,
+
+      role: response.data.role,
+
+      token: response.data.token
+
+    };
+
 
     login(user);
 

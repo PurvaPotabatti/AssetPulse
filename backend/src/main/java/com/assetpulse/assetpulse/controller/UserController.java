@@ -52,4 +52,16 @@ public class UserController {
 
     }
 
+    @PutMapping("/{id}")
+    public User updateEmployee(
+
+            @PathVariable String id,
+            @RequestBody CreateUserRequest request
+
+    ) {
+
+        return userService.updateEmployee(id, request);
+
+    }
+
 }
