@@ -3,6 +3,9 @@ import {
   Search, ChevronDown, Plus, Eye, RotateCcw,
   Monitor, Smartphone, Printer, Laptop, Server
 } from 'lucide-react';
+import { useEffect } from 'react';
+import API from "../../api/axiosConfig";
+import { useAuth } from "../../context/AuthContext";
 
 /* ── Asset category icon map ── */
 const CategoryIcon = ({ category }) => {
@@ -22,77 +25,8 @@ const CategoryIcon = ({ category }) => {
   );
 };
 
-/* ── Seed data ── */
-const initialAssignments = [
-  {
-    id: 1,
-    category:     'Laptop',
-    assetName:    'Dell XPS',
-    assetId:      'AST001',
-    employee:     'Sarah Johnson',
-    department:   'IT Dept',
-    assignedDate: '12 Feb, 2024',
-    returnDate:   null,
-    status:       'Assigned',
-  },
-  {
-    id: 2,
-    category:     'Phone',
-    assetName:    'iPhone 12',
-    assetId:      'AST002',
-    employee:     'David Smith',
-    department:   'HR Dept',
-    assignedDate: '05 Feb, 2024',
-    returnDate:   null,
-    status:       'Assigned',
-  },
-  {
-    id: 3,
-    category:     'Desktop',
-    assetName:    'HP EliteDesk',
-    assetId:      'AST003',
-    employee:     'Lisa Brown',
-    department:   'Sales Dept',
-    assignedDate: '20 Jan, 2024',
-    returnDate:   '20 Mar, 2024',
-    status:       'Returned',
-  },
-  {
-    id: 4,
-    category:     'Printer',
-    assetName:    'Epson Printer',
-    assetId:      'AST004',
-    employee:     'Mark Taylor',
-    department:   'IT Dept',
-    assignedDate: '15 Jan, 2024',
-    returnDate:   null,
-    status:       'Assigned',
-  },
-  {
-    id: 5,
-    category:     'Monitor',
-    assetName:    'Samsung Monitor',
-    assetId:      'AST005',
-    employee:     'James Wilson',
-    department:   'IT Dept',
-    assignedDate: '10 Jan, 2024',
-    returnDate:   '10 Feb, 2024',
-    status:       'Returned',
-  },
-  {
-    id: 6,
-    category:     'Monitor',
-    assetName:    'Samsung Monitor',
-    assetId:      'AST005',
-    employee:     'James Wilson',
-    department:   'IT Dept',
-    assignedDate: '10 Jan, 2024',
-    returnDate:   '10 Feb, 2024',
-    status:       'Returned',
-  },
-];
 
-const EMPLOYEES  = ['All Employees', 'Sarah Johnson', 'David Smith', 'Lisa Brown', 'Mark Taylor', 'James Wilson'];
+
 const STATUSES   = ['All Status', 'Assigned', 'Returned'];
 
 const statusStyle = {
@@ -100,13 +34,58 @@ const statusStyle = {
   Returned: { color: 'hsl(145,60%,35%)', background: 'hsl(145,55%,93%)', border: '1px solid hsl(145,55%,80%)' },
 };
 
+const conditionStyle = {
+
+  GOOD: {
+    color: "hsl(145,60%,35%)",
+    background: "hsl(145,55%,93%)",
+    border: "1px solid hsl(145,55%,80%)"
+  },
+
+  DAMAGED: {
+    color: "hsl(25,85%,40%)",
+    background: "hsl(25,90%,94%)",
+    border: "1px solid hsl(25,85%,80%)"
+  },
+
+  NEEDS_REPAIR: {
+    color: "hsl(0,75%,40%)",
+    background: "hsl(0,85%,94%)",
+    border: "1px solid hsl(0,70%,80%)"
+  },
+
+  LOST: {
+    color: "hsl(0,85%,35%)",
+    background: "hsl(0,95%,92%)",
+    border: "1px solid hsl(0,80%,75%)"
+  }
+
+};
+
 /* ── Assign Modal ── */
-const AssignModal = ({ assignment, onClose, onSave }) => {
+const AssignModal = ({ assignment, assets, employees, onClose, onSave }) => {
   const isEdit = !!assignment?.id;
-  const [form, setForm] = useState(assignment || {
-    category: 'Laptop', assetName: '', assetId: '',
-    employee: '', department: '', assignedDate: '', returnDate: '', status: 'Assigned',
+const today = new Date();
+
+const defaultReturnDate = new Date();
+
+defaultReturnDate.setDate(today.getDate() + 30);
+
+const [form, setForm] = useState({
+
+    assetId: '',
+
+    employeeId: '',
+
+    expectedReturnDate:
+      defaultReturnDate.toISOString().split('T')[0],
+
+    condition: 'GOOD',
+
+    notes: ''
+
   });
+
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   return (
@@ -114,32 +93,121 @@ const AssignModal = ({ assignment, onClose, onSave }) => {
       <div className="ap-modal" onClick={e => e.stopPropagation()}>
         <h2 className="ap-modal-title">{isEdit ? 'Edit Assignment' : 'Assign Asset'}</h2>
         <div className="ap-modal-fields">
-          {[
-            { label: 'Asset Name',     key: 'assetName',    type: 'text'  },
-            { label: 'Asset ID',       key: 'assetId',      type: 'text'  },
-            { label: 'Employee',       key: 'employee',     type: 'text'  },
-            { label: 'Department',     key: 'department',   type: 'text'  },
-            { label: 'Assigned Date',  key: 'assignedDate', type: 'date'  },
-            { label: 'Return Date',    key: 'returnDate',   type: 'date'  },
-          ].map(({ label, key, type }) => (
-            <div key={key} className="ap-modal-field">
-              <label className="ap-modal-label">{label}</label>
-              <input className="ap-modal-input" type={type}
-                value={form[key] || ''} onChange={e => set(key, e.target.value)} />
-            </div>
-          ))}
-          {[
-            { label: 'Category', key: 'category', opts: ['Laptop','Phone','Monitor','Printer','Desktop','Server'] },
-            { label: 'Status',   key: 'status',   opts: ['Assigned','Returned'] },
-          ].map(({ label, key, opts }) => (
-            <div key={key} className="ap-modal-field">
-              <label className="ap-modal-label">{label}</label>
-              <select className="ap-modal-input" value={form[key]}
-                onChange={e => set(key, e.target.value)}>
-                {opts.map(o => <option key={o}>{o}</option>)}
-              </select>
-            </div>
-          ))}
+
+          {/* Asset dropdown */}
+          <div className="ap-modal-field">
+
+            <label className="ap-modal-label">
+              Asset
+            </label>
+
+            <select
+              className="ap-modal-input"
+              value={form.assetId}
+              onChange={e => set('assetId', e.target.value)}
+            >
+
+              <option value="">Select Asset</option>
+
+              {assets.map(a => (
+
+                <option key={a.id} value={a.id}>
+
+                 {a.name} ({a.assetId})
+
+                </option>
+
+              ))}
+
+            </select>
+
+          </div>
+
+
+          {/* Employee dropdown */}
+          <div className="ap-modal-field">
+
+            <label className="ap-modal-label">
+              Employee
+            </label>
+
+            <select
+              className="ap-modal-input"
+              value={form.employeeId}
+              onChange={e => set('employeeId', e.target.value)}
+            >
+
+              <option value="">Select Employee</option>
+
+              {employees.map(e => (
+
+                <option key={e.id} value={e.id}>
+
+                  {e.name} ({e.department})
+
+                </option>
+
+              ))}
+
+            </select>
+
+          </div>
+
+
+          <div className="ap-modal-field">
+
+            <label className="ap-modal-label">
+              Expected Return Date
+            </label>
+
+            <input
+              type="date"
+              className="ap-modal-input"
+              value={form.expectedReturnDate}
+              onChange={e => set('expectedReturnDate', e.target.value)}
+            />
+
+          </div>
+
+
+          {/* Condition */}
+          <div className="ap-modal-field">
+
+            <label className="ap-modal-label">
+              Condition
+            </label>
+
+            <select
+              className="ap-modal-input"
+              value={form.condition}
+              onChange={e => set('condition', e.target.value)}
+            >
+
+              <option>GOOD</option>
+              <option>DAMAGED</option>
+              <option>NEEDS_REPAIR</option>
+              <option>LOST</option>
+
+            </select>
+
+          </div>
+
+
+          {/* Notes */}
+          <div className="ap-modal-field">
+
+            <label className="ap-modal-label">
+              Notes (optional)
+            </label>
+
+            <textarea
+              className="ap-modal-input"
+              value={form.notes}
+              onChange={e => set('notes', e.target.value)}
+            />
+
+          </div>
+
         </div>
         <div className="ap-modal-actions">
           <button className="ap-cancel-btn" onClick={onClose}>Cancel</button>
@@ -182,11 +250,122 @@ const ViewModal = ({ assignment, onClose }) => (
 
 /* ── Main ── */
 const AssignmentsPage = () => {
-  const [assignments, setAssignments] = useState(initialAssignments);
+  const [assignments, setAssignments] = useState([]);
   const [search,      setSearch]      = useState('');
   const [employee,    setEmployee]    = useState('All Employees');
   const [status,      setStatus]      = useState('All Status');
   const [modal,       setModal]       = useState(null); // null | 'add' | { type:'view'|'edit', data }
+  const [assets, setAssets] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const { user } = useAuth();
+
+
+  useEffect(() => {
+
+    fetchAssignments();
+    fetchAssets();
+    fetchEmployees();
+
+  }, []);
+
+  const fetchAssignments = async () => {
+
+    try {
+
+      const response = await API.get("/assignments");
+
+      /*
+        convert backend format → UI format
+      */
+
+      const mapped = response.data.map(a => ({
+
+        id: a.id,
+
+        assetName: a.assetName,
+        assetId: a.assetId || "—",
+
+        employee: a.employeeName,
+        department: a.department || "—",
+        condition: a.condition || "—",
+
+        assignedDate: a.assignedDate
+          ? new Date(a.assignedDate).toLocaleDateString()
+          : "—",
+
+        expectedReturnDate: a.expectedReturnDate
+        ? new Date(a.expectedReturnDate).toLocaleDateString()
+        : "—",  
+
+        returnDate: a.returnDate
+          ? new Date(a.returnDate).toLocaleDateString()
+          : "—",
+
+        status: a.status, 
+
+        category: "Laptop" // temporary placeholder
+      }));
+
+      setAssignments(mapped);
+
+    }
+    catch(err) {
+
+      console.error("Error fetching assignments", err);
+
+    }
+
+  };
+
+  const fetchAssets = async () => {
+
+    try {
+
+      const response = await API.get("/assets");
+
+      /*
+        only available assets
+      */
+
+      const availableAssets = response.data.filter(
+        a => a.status === "Available"
+      );
+
+      setAssets(availableAssets);
+
+    }
+    catch(err) {
+
+      console.error("Error fetching assets", err);
+
+    }
+
+  };  
+
+  const fetchEmployees = async () => {
+
+    try {
+
+      const response = await API.get(`/users/${user.userId}`);
+
+      const mapped = response.data.map(e => ({
+
+        id: e.id,
+        name: e.name,
+        department: e.department || "—"
+
+      }));
+
+      setEmployees(mapped);
+
+    }
+    catch(err) {
+
+      console.error("Error fetching employees", err);
+
+    }
+
+  };  
 
   const filtered = assignments.filter(a => {
     const q = search.toLowerCase();
@@ -198,21 +377,93 @@ const AssignmentsPage = () => {
     return matchSearch && matchEmp && matchStatus;
   });
 
-  const handleSave = (form) => {
-    if (form.id) {
-      setAssignments(prev => prev.map(a => a.id === form.id ? form : a));
-    } else {
-      setAssignments(prev => [...prev, { ...form, id: Date.now() }]);
+  const handleSave = async (form) => {
+
+    try {
+
+      /*
+        find selected asset
+      */
+
+      const selectedAsset = assets.find(
+        a => a.id === form.assetId
+      );
+
+      /*
+        find selected employee
+      */
+
+      const selectedEmployee = employees.find(
+        e => e.id === form.employeeId
+      );
+
+      /*
+        send to backend
+      */
+
+      await API.post("/assignments", {
+
+        assetMongoId: selectedAsset.id,   // Mongo _id
+
+        assetId: selectedAsset.assetId,   // readable ID
+
+        assetName: selectedAsset.name,
+
+        employeeId: selectedEmployee.id,
+
+        employeeName: selectedEmployee.name,
+
+        department: selectedEmployee.department,
+
+        expectedReturnDate: form.expectedReturnDate,
+
+        condition: form.condition,
+
+        notes: form.notes
+
+      });
+
+      /*
+        refresh table
+      */
+
+      fetchAssignments();
+
+      /*
+        refresh assets list
+        because asset becomes ASSIGNED
+      */
+
+      fetchAssets();
+
+      setModal(null);
+
     }
-    setModal(null);
+    catch(err) {
+
+      console.error("Assignment failed", err);
+
+    }
+
   };
 
-  const handleReturn = (id) => {
-    const today = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' })
-      .replace(/ /g, ' ');
-    setAssignments(prev => prev.map(a =>
-      a.id === id ? { ...a, status: 'Returned', returnDate: today } : a
-    ));
+  const handleReturn = async (id) => {
+
+    try {
+
+      await API.put(`/assignments/${id}/return`);
+
+      fetchAssignments();
+
+      fetchAssets(); // asset becomes available again
+
+    }
+    catch(err) {
+
+      console.error("Return failed", err);
+
+    }
+
   };
 
   return (
@@ -236,7 +487,17 @@ const AssignmentsPage = () => {
         </div>
         <div className="ap-select-wrap">
           <select className="ap-select" value={employee} onChange={e => setEmployee(e.target.value)}>
-            {EMPLOYEES.map(emp => <option key={emp}>{emp}</option>)}
+            <option>All Employees</option>
+
+            {employees.map(e => (
+
+              <option key={e.id}>
+
+                {e.name}
+
+              </option>
+
+            ))}
           </select>
           <ChevronDown size={15} className="ap-select-icon" />
         </div>
@@ -253,7 +514,7 @@ const AssignmentsPage = () => {
         <table className="ap-table asgn-table">
           <thead>
             <tr>
-              {['Asset Name','Asset ID','Employee','Department','Assigned Date','Return Date','Status','Actions'].map(h => (
+              {['Asset Name','Asset ID','Employee','Department','Condition','Assigned Date','Expected Return','Return Date','Status','Actions'].map(h => (
                 <th key={h} className="ap-th">{h}</th>
               ))}
             </tr>
@@ -265,23 +526,27 @@ const AssignmentsPage = () => {
               <tr key={a.id} className={`ap-tr ${i % 2 === 1 ? 'ap-tr-alt' : ''}`}>
 
                 {/* Asset Name with icon */}
-                <td className="ap-td">
-                  <div className="asgn-asset-name-wrap">
-                    <CategoryIcon category={a.category} />
-                    <span className="ap-td-name">{a.assetName}</span>
-                  </div>
-                </td>
-
+                <td className="ap-td ap-td-name">{a.assetName}</td>
                 <td className="ap-td asgn-id-cell">{a.assetId}</td>
                 <td className="ap-td">{a.employee}</td>
                 <td className="ap-td">{a.department}</td>
+                <td className="ap-td">
+                  <span
+                    className="ap-status-badge"
+                    style={conditionStyle[a.condition] || {}}
+                  >
+                    {a.condition}
+                  </span>
+                </td>
                 <td className="ap-td">{a.assignedDate}</td>
-
+                <td className="ap-td">
+                  {a.expectedReturnDate || "—"}
+                </td>
                 {/* Return date — shows arrow + date if returned */}
                 <td className="ap-td">
                   {a.returnDate ? (
                     <div className="asgn-return-date">
-                      <span className="asgn-return-arrow">→ {a.returnDate}</span>
+                      <span className="asgn-return-arrow"> {a.returnDate}</span>
                     </div>
                   ) : <span className="asgn-no-return">—</span>}
                 </td>
@@ -316,10 +581,22 @@ const AssignmentsPage = () => {
 
       {/* Modals */}
       {modal?.type === 'add'  && (
-        <AssignModal assignment={null} onClose={() => setModal(null)} onSave={handleSave} />
+        <AssignModal
+          assignment={null}
+          assets={assets}
+          employees={employees}
+          onClose={() => setModal(null)}
+          onSave={handleSave}
+        />
       )}
       {modal?.type === 'edit' && (
-        <AssignModal assignment={modal.data} onClose={() => setModal(null)} onSave={handleSave} />
+        <AssignModal
+          assignment={modal.data}
+          assets={assets}
+          employees={employees}
+          onClose={() => setModal(null)}
+          onSave={handleSave}
+        />
       )}
       {modal?.type === 'view' && (
         <ViewModal assignment={modal.data} onClose={() => setModal(null)} />
