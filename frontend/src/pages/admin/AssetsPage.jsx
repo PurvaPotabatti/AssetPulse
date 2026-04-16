@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import API from "../../api/axiosConfig";
 import { Search, ChevronDown, Plus, Pencil, Trash2 } from 'lucide-react';
+import {
+  statusStyles,
+  statusLabels
+} from "../../utils/statusUtils";
 
-const STATUSES = ['All Status', 'Available', 'Assigned', 'Maintenance'];
-
-const statusStyle = {
-  Available:   { color: 'hsl(145,60%,35%)',  background: 'hsl(145,55%,93%)', border: '1px solid hsl(145,55%,80%)' },
-  Assigned:    { color: 'hsl(214,70%,45%)',  background: 'hsl(214,80%,94%)', border: '1px solid hsl(214,70%,82%)' },
-  Maintenance: { color: 'hsl(38,90%,38%)',   background: 'hsl(38,90%,93%)',  border: '1px solid hsl(38,80%,78%)' },
-};
+const STATUSES = [
+  'All Status',
+  'AVAILABLE',
+  'ASSIGNED',
+  'IN_MAINTENANCE'
+];
 
 
 
@@ -318,8 +321,8 @@ const fetchAssets = async () => {
                 <td className="ap-td">{a.assetId}</td>
                 <td className="ap-td">{a.location?.trim() ? a.location : "-"}</td>
                 <td className="ap-td">
-                  <span className="ap-status-badge" style={statusStyle[a.status] || {}}>
-                    {a.status?.charAt(0) + a.status?.slice(1).toLowerCase()}
+                  <span className="ap-status-badge" style={statusStyles[a.status] || {}}>
+                    {statusLabels[a.status]}
                   </span>
                 </td>
                 <td className="ap-td"> {a.purchaseDate

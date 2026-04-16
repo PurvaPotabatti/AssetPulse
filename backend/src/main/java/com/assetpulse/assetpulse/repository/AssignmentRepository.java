@@ -20,4 +20,8 @@ public interface AssignmentRepository extends MongoRepository<Assignment, String
     // get assignments of employee
     List<Assignment> findByEmployeeId(String employeeId);
 
+    List<Assignment> findByEmployeeIdAndStatus(String employeeId, String status);
+
+
+
 }

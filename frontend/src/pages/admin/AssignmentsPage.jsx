@@ -6,6 +6,10 @@ import {
 import { useEffect } from 'react';
 import API from "../../api/axiosConfig";
 import { useAuth } from "../../context/AuthContext";
+import {
+  statusStyles,
+  statusLabels
+} from "../../utils/statusUtils";
 
 /* ── Asset category icon map ── */
 const CategoryIcon = ({ category }) => {
@@ -27,12 +31,8 @@ const CategoryIcon = ({ category }) => {
 
 
 
-const STATUSES   = ['All Status', 'Assigned', 'Returned'];
+const STATUSES = ['All Status', 'ASSIGNED', 'RETURNED'];
 
-const statusStyle = {
-  Assigned: { color: 'hsl(38,90%,38%)',  background: 'hsl(38,90%,93%)',  border: '1px solid hsl(38,80%,78%)' },
-  Returned: { color: 'hsl(145,60%,35%)', background: 'hsl(145,55%,93%)', border: '1px solid hsl(145,55%,80%)' },
-};
 
 const conditionStyle = {
 
@@ -61,6 +61,15 @@ const conditionStyle = {
   }
 
 };
+
+
+const formatStatus = (status) => {
+
+  if(status === "ASSIGNED") return "Assigned";
+  if(status === "RETURNED") return "Returned";
+
+  return status;
+}
 
 /* ── Assign Modal ── */
 const AssignModal = ({ assignment, assets, employees, onClose, onSave }) => {
@@ -553,8 +562,8 @@ const AssignmentsPage = () => {
 
                 {/* Status badge */}
                 <td className="ap-td">
-                  <span className="ap-status-badge" style={statusStyle[a.status] || {}}>
-                    {a.status}
+                  <span className="ap-status-badge" style={statusStyles[a.status] || {}}>
+                    {statusLabels[a.status]}
                   </span>
                 </td>
 
@@ -565,7 +574,7 @@ const AssignmentsPage = () => {
                     <Eye size={13} />
                     View
                   </button>
-                  {a.status === 'Assigned' && (
+                  {a.status === 'ASSIGNED' && (
                     <button className="ap-action-btn asgn-return-btn"
                       onClick={() => handleReturn(a.id)}>
                       <RotateCcw size={13} />

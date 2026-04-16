@@ -2,9 +2,11 @@ package com.assetpulse.assetpulse.service;
 
 import com.assetpulse.assetpulse.model.Assignment;
 import com.assetpulse.assetpulse.model.Asset;
+import com.assetpulse.assetpulse.model.User;
 import com.assetpulse.assetpulse.repository.AssignmentRepository;
 import com.assetpulse.assetpulse.repository.AssetRepository;
 
+import com.assetpulse.assetpulse.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,26 +23,40 @@ public class AssignmentService {
     @Autowired
     private AssetRepository assetRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
     /*
         Assign asset to employee
     */
     public Assignment assignAsset(Assignment assignment) {
 
-        // check asset exists
         Asset asset = assetRepository.findById(assignment.getAssetMongoId())
                 .orElseThrow(() -> new RuntimeException("Asset not found"));
 
-        // check asset availability
-        if(!asset.getStatus().equals("Available"))  {
+        if(!asset.getStatus().equals("Available")) {
             throw new RuntimeException("Asset is not available for assignment");
         }
 
-        // set values
-        assignment.setStatus("Assigned");
+    /*
+        FETCH EMPLOYEE DETAILS
+     */
+        User employee = userRepository.findById(
+                assignment.getEmployeeId()   // this currently contains mongo id from UI
+        ).orElseThrow(() -> new RuntimeException("Employee not found"));
+
+    /*
+        STORE CORRECT VALUES
+     */
+        assignment.setEmployeeId(employee.getId());
+        assignment.setEmployeeName(employee.getName());
+        assignment.setDepartment(employee.getDepartment());
+
+        assignment.setStatus("ASSIGNED");
         assignment.setAssignedDate(LocalDate.now());
 
-        // update asset status
-        asset.setStatus("Assigned");
+        asset.setStatus("ASSIGNED");
+
         assetRepository.save(asset);
 
         return assignmentRepository.save(assignment);
@@ -56,7 +72,7 @@ public class AssignmentService {
                 .orElseThrow(() -> new RuntimeException("Assignment not found"));
 
         // update assignment
-        assignment.setStatus("Returned");
+        assignment.setStatus("RETURNED");
         assignment.setReturnDate(LocalDate.now());
 
         // update asset status

@@ -54,14 +54,13 @@ public class UserService {
                 count
         );
 
-        String hashedPassword = passwordEncoder.encode(request.getPassword());
-
+        String inviteToken = java.util.UUID.randomUUID().toString();
         User user = new User();
 
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setPhone(request.getPhone());
-        user.setPasswordHash(hashedPassword);
+        user.setPasswordHash(null);
 
         user.setRoleId(employeeRole.getId());
 
@@ -78,9 +77,9 @@ public class UserService {
         );
 
         user.setInvitedBy(request.getAdminId()); // NEW LINE
-
-        user.setStatus("ACTIVE");
-
+        user.setStatus("INVITED");
+        user.setInviteToken(inviteToken);
+        user.setInviteExpiry(LocalDateTime.now().plusDays(7));
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
         user.setEmployeeId(employeeCode);
@@ -161,6 +160,32 @@ public class UserService {
 
         return userRepository.save(user);
 
+    }
+
+    public void activateAccount(String token, String password) {
+
+        User user = userRepository
+                .findByInviteToken(token)
+                .orElseThrow(() -> new RuntimeException("Invalid activation token"));
+
+        if(user.getInviteExpiry().isBefore(LocalDateTime.now())) {
+
+            throw new RuntimeException("Activation link expired");
+        }
+
+        String hashedPassword = passwordEncoder.encode(password);
+
+        user.setPasswordHash(hashedPassword);
+
+        user.setStatus("ACTIVE");
+
+        user.setInviteToken(null);
+
+        user.setInviteExpiry(null);
+
+        user.setUpdatedAt(LocalDateTime.now());
+
+        userRepository.save(user);
     }
 
 }

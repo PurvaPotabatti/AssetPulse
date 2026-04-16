@@ -14,5 +14,6 @@ public interface UserRepository extends MongoRepository<User, String> {
     List<User> findByRoleId(String roleId);
     List<User> findByRoleIdAndInvitedBy(String roleId, String invitedBy);
     long countByRoleId(String roleId);
+    Optional<User> findByInviteToken(String inviteToken);
 
 }

@@ -27,6 +27,9 @@ public class User {
 
     private String status;
 
+    private String inviteToken;
+    private LocalDateTime inviteExpiry;
+
     private String invitedBy;
 
     private LocalDateTime lastLogin;
@@ -96,6 +99,14 @@ public class User {
 
     public String getStatus() {
         return status;
+    }
+
+    public String getInviteToken() {
+        return inviteToken;
+    }
+
+    public LocalDateTime getInviteExpiry() {
+        return inviteExpiry;
     }
 
     public String getInvitedBy() {
@@ -168,5 +179,13 @@ public class User {
 
     public void setEmployeeId(String employeeId) {
         this.employeeId = employeeId;
+    }
+
+    public void setInviteExpiry(LocalDateTime inviteExpiry) {
+        this.inviteExpiry = inviteExpiry;
+    }
+
+    public void setInviteToken(String invitedToken) {
+        this.inviteToken = invitedToken;
     }
 }

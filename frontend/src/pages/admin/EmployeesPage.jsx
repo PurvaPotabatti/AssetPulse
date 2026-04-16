@@ -3,11 +3,16 @@ import { Search, ChevronDown, Plus, Pencil, Trash2 } from 'lucide-react';
 import API from "../../api/axiosConfig";
 import { useAuth } from "../../context/AuthContext";
 
-const STATUSES    = ['All Status', 'Active', 'Inactive'];
+const STATUSES    = ['All Status', 'Invited', 'Active', 'Inactive'];
 
 const statusStyle = {
   Active:   { color: 'hsl(145,60%,35%)', background: 'hsl(145,55%,93%)', border: '1px solid hsl(145,55%,80%)' },
   Inactive: { color: 'hsl(215,16%,45%)', background: 'hsl(214,25%,93%)', border: '1px solid hsl(214,20%,82%)' },
+  Invited: {
+    color: 'hsl(220,15%,40%)',
+    background: 'hsl(220,20%,94%)',
+    border: '1px solid hsl(220,15%,85%)'
+  },
 };
 
 /* ── Truncate email display ── */
@@ -31,8 +36,7 @@ const EmployeeModal = ({ employee, onClose, onSave }) => {
       employeeId: '',
       department: '',
       role: '',
-      email: '',
-      status: 'Active'
+      email: ''
     }
   );
 
@@ -127,22 +131,7 @@ const EmployeeModal = ({ employee, onClose, onSave }) => {
             </div>
 
           ))}
-          <div className="ap-modal-field">
 
-            <label className="ap-modal-label">Status</label>
-
-            <select
-              className="ap-modal-input"
-              value={form.status}
-              onChange={e => set('status', e.target.value)}
-            >
-
-              <option>Active</option>
-              <option>Inactive</option>
-
-            </select>
-
-          </div>
         </div>
 
         <div className="ap-modal-actions">
@@ -190,7 +179,11 @@ const fetchEmployees = async () => {
       department: u.department,
       role: u.designation,
       email: u.email,
-      status: u.status === "ACTIVE" ? "Active" : "Inactive"
+      status:u.status === "ACTIVE"
+                ? "Active"
+                : u.status === "INVITED"
+                ? "Invited"
+                : "Inactive"
     }));
 
     setEmployees(mapped);
