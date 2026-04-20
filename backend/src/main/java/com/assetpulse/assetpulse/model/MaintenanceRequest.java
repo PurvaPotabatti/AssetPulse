@@ -29,6 +29,10 @@ public class MaintenanceRequest {
 
     private LocalDateTime createdAt;
 
+    private String assignedTo;
+    private Double cost;
+    private String priority;
+
     public MaintenanceRequest(){
         this.createdAt = LocalDateTime.now();
         this.status = "OPEN";
@@ -38,6 +42,10 @@ public class MaintenanceRequest {
 
     // getters setters
 
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getId() {
         return id;
@@ -111,11 +119,39 @@ public class MaintenanceRequest {
         return createdAt;
     }
 
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
     public String getAssignmentId() {
         return assignmentId;
     }
 
     public void setAssignmentId(String assignmentId) {
         this.assignmentId = assignmentId;
+    }
+
+    public String getAssignedTo() {
+        return assignedTo;
+    }
+
+    public void setAssignedTo(String assignedTo) {
+        this.assignedTo = assignedTo;
+    }
+
+    public Double getCost() {
+        return cost;
+    }
+
+    public void setCost(Double cost) {
+        this.cost = cost;
+    }
+
+    public String getPriority() {
+        return priority;
+    }
+
+    public void setPriority(String priority) {
+        this.priority = priority;
     }
 }

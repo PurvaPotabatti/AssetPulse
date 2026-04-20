@@ -337,7 +337,7 @@ const AssignmentsPage = () => {
       */
 
       const availableAssets = response.data.filter(
-        a => a.status === "Available"
+        a => a.status?.toUpperCase() === "AVAILABLE"
       );
 
       setAssets(availableAssets);

@@ -74,4 +74,15 @@ public class MaintenanceController {
         return maintenanceService.getAllRequests();
     }
 
+    @PostMapping("/schedule")
+    public MaintenanceRequest scheduleMaintenance(
+
+            @RequestBody MaintenanceRequest request
+
+    ){
+
+        return maintenanceService.scheduleMaintenance(request);
+
+    }
+
 }

@@ -34,7 +34,7 @@ public class AssignmentService {
         Asset asset = assetRepository.findById(assignment.getAssetMongoId())
                 .orElseThrow(() -> new RuntimeException("Asset not found"));
 
-        if(!asset.getStatus().equals("Available")) {
+        if(!asset.getStatus().equals("AVAILABLE")) {
             throw new RuntimeException("Asset is not available for assignment");
         }
 
@@ -79,7 +79,7 @@ public class AssignmentService {
         Asset asset = assetRepository.findById(assignment.getAssetMongoId())
                 .orElseThrow(() -> new RuntimeException("Asset not found"));
 
-        asset.setStatus("Available");
+        asset.setStatus("AVAILABLE");
 
         assetRepository.save(asset);
 

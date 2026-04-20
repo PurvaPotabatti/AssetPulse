@@ -28,6 +28,28 @@ export const statusStyles = {
   LOST: {
     color: "#ffffff",
     background: "#991b1b"
+  },
+
+  /* ── maintenance statuses ── */
+
+  OPEN: {
+    color: "#92400e",
+    background: "#fde68a"
+  },
+
+  IN_PROGRESS: {
+    color: "#1e40af",
+    background: "#dbeafe"
+  },
+
+  RESOLVED: {
+    color: "#065f46",
+    background: "#d1fae5"
+  },
+
+  REJECTED: {
+    color: "#ffffff",
+    background: "#991b1b"
   }
 
 };
@@ -45,6 +67,10 @@ export const statusLabels = {
 
   DAMAGED: "Damaged",
 
-  LOST: "Lost"
+  LOST: "Lost",
+  OPEN: "Open",
+  IN_PROGRESS: "In Progress",
+  RESOLVED: "Resolved",
+  REJECTED: "Rejected"
 
 };

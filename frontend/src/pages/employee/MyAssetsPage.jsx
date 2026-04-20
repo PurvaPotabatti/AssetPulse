@@ -67,7 +67,6 @@ const DetailModal = ({ asset, onClose }) => (
         {[
           ['Asset Name',    asset.assetName],
           ['Asset ID',      asset.assetId],
-          ['Category',      asset.category],
           ['Assigned Date', asset.assignedDate],
           ['Status',        asset.status],
         ].map(([label, val]) => (
@@ -115,8 +114,6 @@ const DetailModal = ({ asset, onClose }) => (
         assetName: a.assetName,
 
         assetId: a.assetId,
-
-        category: a.category || "Laptop",
 
         assignedDate: a.assignedDate
           ? new Date(a.assignedDate).toLocaleDateString()
@@ -293,7 +290,6 @@ const statTiles = [
               <tr>
                 <th className="ap-th">Asset </th>
                 <th className="ap-th">Asset ID</th>
-                <th className="ap-th">Category</th>
                 <th className="ap-th">Assigned Date</th>
                 <th className="ap-th">Status</th>
                 <th className="ap-th">Action</th>
@@ -302,7 +298,7 @@ const statTiles = [
             </thead>
             <tbody>
               {paginated.length === 0 ? (
-                <tr><td colSpan={7} className="ap-empty">No assets found.</td></tr>
+                <tr><td colSpan={6} className="ap-empty">No assets found.</td></tr>
               ) : paginated.map((a, i) => (
                 <tr key={a.id} className={`ap-tr ${i % 2 === 1 ? 'ap-tr-alt' : ''}`}>
 
@@ -316,7 +312,6 @@ const statTiles = [
                   </td>
 
                   <td className="ap-td ma-id-cell">{a.assetId}</td>
-                  <td className="ap-td">{a.category}</td>
                   <td className="ap-td ma-date-cell">{a.assignedDate}</td>
 
                   {/* Status badge */}

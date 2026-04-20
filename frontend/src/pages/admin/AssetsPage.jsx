@@ -21,7 +21,7 @@ const AssetModal = ({ asset, onClose, onSave }) => {
   const [errors, setErrors] = useState({});
   const isEdit = !!asset?.id;
   const [form, setForm] = useState(
-    asset || { name: '', category: '', location: '', status: 'Available', purchaseDate: '' }
+    asset || { name: '', category: '', location: '', status: 'AVAILABLE', purchaseDate: '' }
   );
 
 

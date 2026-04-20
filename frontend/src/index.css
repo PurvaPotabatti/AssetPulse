@@ -3982,3 +3982,9 @@ gap:10px;
   color: #6b7280;
   cursor: not-allowed;
 }
+
+.ap-readonly {
+  background:#f8fafc;
+  cursor:not-allowed;
+  opacity:0.85;
+}

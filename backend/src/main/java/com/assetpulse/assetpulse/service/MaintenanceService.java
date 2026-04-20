@@ -67,6 +67,10 @@ public class MaintenanceService {
 
         request.setIssueDescription(issueDescription);
 
+        request.setPriority("NOT_ASSIGNED");
+        request.setAssignedTo(null);
+        request.setCost(null);
+
         return maintenanceRepository.save(request);
     }
 
@@ -91,6 +95,25 @@ public class MaintenanceService {
     public List<MaintenanceRequest> getAllRequests(){
 
         return maintenanceRepository.findAll();
+    }
+
+    public MaintenanceRequest scheduleMaintenance(
+            MaintenanceRequest request
+    ){
+
+        if(request.getPriority() == null)
+            request.setPriority("NOT_ASSIGNED");
+
+        if(request.getStatus() == null)
+            request.setStatus("OPEN");
+
+        if(request.getCreatedAt() == null)
+            request.setCreatedAt(
+                    java.time.LocalDateTime.now()
+            );
+
+        return maintenanceRepository.save(request);
+
     }
 
 }

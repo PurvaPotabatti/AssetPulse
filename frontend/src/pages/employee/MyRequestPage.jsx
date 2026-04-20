@@ -1,56 +1,24 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Search, ChevronDown, ChevronLeft, ChevronRight,
   Laptop, Smartphone, Printer, Monitor, Server, ArrowUp
 } from 'lucide-react';
+import API from "../../api/axiosConfig";
+import {
+  statusStyles,
+  statusLabels
+} from "../../utils/statusUtils";
 
-/* ── Category icon chip ── */
-const CategoryIcon = ({ category }) => {
-  const p = { size: 16, strokeWidth: 1.8 };
-  const map = {
-    Laptop:  <Laptop     {...p} />,
-    Phone:   <Smartphone {...p} />,
-    Monitor: <Monitor    {...p} />,
-    Printer: <Printer    {...p} />,
-    Desktop: <Monitor    {...p} />,
-    Server:  <Server     {...p} />,
-  };
-  return <span className="ma-asset-icon">{map[category] || <Monitor {...p} />}</span>;
-};
 
-/* ── Seed data ── */
-const allRequests = [
-  { id:1, category:'Laptop',  assetName:'Dell XPS 13',  assetId:'AST102', issue:'Screen flickering',         priority:'High',   statusBadge:'In Progress', statusText:'In Progress', requestedDate:'12 Apr 2024' },
-  { id:2, category:'Phone',   assetName:'iPhone 12',    assetId:'AST210', issue:'Battery draining quickly',  priority:'Medium', statusBadge:'Requested',   statusText:'Requested',   requestedDate:'5 Apr 2024'  },
-  { id:3, category:'Monitor', assetName:'Acer Monitor', assetId:'AST306', issue:'Display flickering',        priority:'Low',    statusBadge:'Completed',   statusText:'Completed',   requestedDate:'1 Apr 2024'  },
-  { id:4, category:'Laptop',  assetName:'MacBook Pro',  assetId:'AST401', issue:'Overheating issues',        priority:'High',   statusBadge:'In Progress', statusText:'In Progress', requestedDate:'28 Mar 2024' },
-  { id:5, category:'Printer', assetName:'HP LaserJet',  assetId:'AST512', issue:'Paper jam',                 priority:'Low',    statusBadge:'Completed',   statusText:'Completed',   requestedDate:'22 Mar 2024' },
+const STATUSES = [
+  "All Status",
+  "OPEN",
+  "IN_PROGRESS",
+  "RESOLVED",
+  "REJECTED"
 ];
-
-const STATUSES = ['All Status', 'In Progress', 'Requested', 'Completed'];
 const PAGE_SIZE = 2;
 
-/* Priority text colour only (no background) */
-const priorityColor = {
-  High:     'hsl(0,72%,50%)',
-  Medium:   'hsl(28,90%,48%)',
-  Low:      'hsl(215,16%,52%)',
-  Critical: 'hsl(14,90%,50%)',
-};
-
-/* Status badge full styles */
-const statusBadgeStyle = {
-  'In Progress': { color:'hsl(38,90%,30%)',  background:'hsl(38,95%,70%)',   border:'none' },
-  Requested:     { color:'#fff',              background:'hsl(214,80%,51%)',  border:'none' },
-  Completed:     { color:'hsl(145,60%,30%)',  background:'hsl(145,55%,88%)',  border:'none' },
-};
-
-/* Status text (plain) colour */
-const statusTextColor = {
-  'In Progress': 'hsl(38,80%,35%)',
-  Requested:     'hsl(214,80%,44%)',
-  Completed:     'hsl(145,55%,32%)',
-};
 
 /* ── View / Detail Modal ── */
 const ViewModal = ({ req, onClose }) => (
@@ -62,8 +30,7 @@ const ViewModal = ({ req, onClose }) => (
           ['Asset',          `${req.assetName} (${req.assetId})`],
           ['Category',        req.category],
           ['Issue',           req.issue],
-          ['Priority',        req.priority],
-          ['Status',          req.statusText],
+          ['Status', statusLabels[req.status]],
           ['Requested Date',  req.requestedDate],
         ].map(([label, val]) => (
           <div key={label} className="asgn-view-row">
@@ -85,15 +52,60 @@ const MyRequestPage = () => {
   const [status, setStatus] = useState('All Status');
   const [page,   setPage]   = useState(1);
   const [modal,  setModal]  = useState(null);
+  const [requests, setRequests] = useState([]);
+
+
+  useEffect(() => {
+    fetchRequests();
+  }, []);  
+
+  const fetchRequests = async () => {
+
+    try {
+
+      const res = await API.get("/maintenance/my");
+
+      const mapped = res.data.map(r => ({
+
+        id: r.id,
+
+        assetName: r.assetName,
+
+        assetId: r.assetId,
+
+        issue: r.issueDescription,
+
+        status: r.status,
+
+        requestedDate: r.createdAt
+          ? new Date(r.createdAt).toLocaleDateString()
+          : "—"
+
+      }));
+
+      setRequests(mapped);
+
+    } catch(err) {
+
+      console.error("error loading requests", err);
+
+    }
+
+  };  
 
   /* Filter */
-  const filtered = allRequests.filter(r => {
+  const filtered = requests.filter(r => {
+
     const q = search.toLowerCase();
-    const matchSearch = r.assetName.toLowerCase().includes(q) ||
-                        r.assetId.toLowerCase().includes(q)   ||
-                        r.issue.toLowerCase().includes(q);
-    const matchStatus = status === 'All Status' || r.statusBadge === status;
-    return matchSearch && matchStatus;
+
+    return (
+      r.assetName.toLowerCase().includes(q) ||
+      r.assetId.toLowerCase().includes(q) ||
+      r.issue.toLowerCase().includes(q)
+    )
+
+    && (status === 'All Status' || r.status === status);
+
   });
 
   /* Pagination */
@@ -131,12 +143,8 @@ const MyRequestPage = () => {
           <table className="ap-table mrp-table">
             <thead>
               <tr>
-                <th className="ap-th">
-                  <span className="ma-th-sort">Asset <ArrowUp size={12} /></span>
-                </th>
+                <th className="ap-th">Asset</th>
                 <th className="ap-th">Issue</th>
-                <th className="ap-th">Priority</th>
-                <th className="ap-th">Status</th>
                 <th className="ap-th">Status</th>
                 <th className="ap-th">Requested Date</th>
                 <th className="ap-th">Action</th>
@@ -151,7 +159,6 @@ const MyRequestPage = () => {
                   {/* Asset: icon + name + sub-id */}
                   <td className="ap-td">
                     <div className="ma-asset-cell">
-                      <CategoryIcon category={r.category} />
                       <div className="ma-asset-text">
                         <span className="ma-asset-name">{r.assetName}</span>
                         <span className="ma-asset-sub-id">{r.assetId}</span>
@@ -162,29 +169,14 @@ const MyRequestPage = () => {
                   {/* Issue */}
                   <td className="ap-td mrp-issue-cell">{r.issue}</td>
 
-                  {/* Priority — coloured text only */}
-                  <td className="ap-td">
-                    <span className="mrp-priority-text"
-                      style={{ color: priorityColor[r.priority] || 'inherit' }}>
-                      {r.priority}
-                    </span>
-                  </td>
-
                   {/* Status badge (pill) */}
                   <td className="ap-td">
                     <span className="ap-status-badge mrp-status-badge"
-                      style={statusBadgeStyle[r.statusBadge] || {}}>
-                      {r.statusBadge}
+                      style={statusStyles[r.status] || {}}>
+                      {statusLabels[r.status]}
                     </span>
                   </td>
 
-                  {/* Status text (plain) */}
-                  <td className="ap-td">
-                    <span className="mrp-status-text"
-                      style={{ color: statusTextColor[r.statusText] || 'inherit' }}>
-                      {r.statusText}
-                    </span>
-                  </td>
 
                   {/* Requested Date */}
                   <td className="ap-td mrp-date-cell">{r.requestedDate}</td>
@@ -254,10 +246,11 @@ const MyRequestPage = () => {
       </div>{/* /ma-container */}
 
       {/* ── Empty state card ── */}
+      {requests.length === 0 && (
       <div className="mrp-empty-card">
         <p className="mrp-empty-title">No maintenance requests yet</p>
         <p className="mrp-empty-sub">Report an issue from My Assets page</p>
-      </div>
+      </div>)}
 
       {/* ── Modal ── */}
       {modal && <ViewModal req={modal} onClose={() => setModal(null)} />}

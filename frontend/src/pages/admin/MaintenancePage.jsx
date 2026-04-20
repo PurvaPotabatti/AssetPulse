@@ -1,31 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Search, ChevronDown, Plus, Eye, AlignJustify,
-  Monitor, Smartphone, Printer, Laptop, Server
+  Monitor, Smartphone, Printer, Laptop, Server, Pencil
 } from 'lucide-react';
+import axios from "axios";
+import { statusStyles, statusLabels } from "../../utils/statusUtils";
+import API from "../../api/axiosConfig";
 
-/* ── Category icon ── */
-const CategoryIcon = ({ category }) => {
-  const props = { size: 16, strokeWidth: 1.8 };
-  const map = {
-    Laptop:  <Laptop    {...props} />,
-    Phone:   <Smartphone {...props} />,
-    Monitor: <Monitor   {...props} />,
-    Printer: <Printer   {...props} />,
-    Desktop: <Monitor   {...props} />,
-    Server:  <Server    {...props} />,
-  };
-  return <span className="asgn-asset-icon">{map[category] || <Monitor {...props} />}</span>;
-};
-
-/* ── Badge styles ── */
-const priorityStyle = {
-  High:     { color: '#fff',                background: 'hsl(0,75%,55%)',    border: 'none' },
-  Critical: { color: '#fff',                background: 'hsl(14,90%,53%)',   border: 'none' },
-  Medium:   { color: 'hsl(38,85%,32%)',     background: 'hsl(38,95%,82%)',   border: 'none' },
-  Low:      { color: '#fff',                background: 'hsl(215,16%,55%)',  border: 'none' },
-  Approved: { color: 'hsl(214,80%,40%)',    background: 'hsl(214,80%,92%)',  border: 'none' },
-};
 
 const statusStyle = {
   Requested: { color: 'hsl(214,80%,46%)', background: 'hsl(214,80%,94%)', border: '1.5px solid hsl(214,70%,80%)' },
@@ -34,29 +15,39 @@ const statusStyle = {
   Approved:    { color: 'hsl(271,60%,45%)', background: 'hsl(271,60%,94%)', border: '1.5px solid hsl(271,55%,80%)' },
 };
 
-/* ── Seed data ── */
-const initialRecords = [
-  { id:1, category:'Laptop',  assetName:'Dell XPS',      assetId:'AST001', issue:'Screen flickering frequently', priority:'High',     requestedBy:'Sarah Johnson', assignedTo:'Dell Service Center', cost:2500, status:'In Progress' },
-  { id:2, category:'Printer', assetName:'Epson Printer', assetId:'AST004', issue:'Paper jam issues',             priority:'Low',      requestedBy:'John Admin',    assignedTo:'Office Tech',          cost:500,  status:'Completed'   },
-  { id:3, category:'Phone',   assetName:'iPhone 12',     assetId:'AST002', issue:'Battery draining quickly',     priority:'High',     requestedBy:'David Smith',   assignedTo:'—',                    cost:null, status:'Requested'   },
-  { id:4, category:'Monitor', assetName:'Acer Monitor',  assetId:'AST006', issue:'Display is blurry',            priority:'Medium',   requestedBy:'Lisa Brown',    assignedTo:'Bright Vision',        cost:300,  status:'Completed'   },
-  { id:5, category:'Laptop',  assetName:'HP EliteBook',  assetId:'AST007', issue:'Overheating, shuts down',      priority:'Critical', requestedBy:'Emma Davis',    assignedTo:'FreshService',         cost:1800, status:'In Progress' },
-  { id:6, category:'Laptop',  assetName:'HP Primier',    assetId:'AST002', issue:'Report issues',                priority:'Critical', requestedBy:'Emma Davis',    assignedTo:'FreshService',         cost:1800, status:'In Progress' },
-  { id:7, category:'Monitor', assetName:'HP EliteBook',  assetId:'AST007', issue:'Overheating, shuts down',      priority:'Approved', requestedBy:'Emma Davis',    assignedTo:'—',                    cost:1800, status:'Approved'    },
-];
 
-const STATUSES   = ['All Status',   'Requested', 'In Progress', 'Completed', 'Approved'];
-const PRIORITIES = ['All Priority', 'High', 'Critical', 'Medium', 'Low', 'Approved'];
-const CATEGORIES = ['All Categories', 'Laptop', 'Phone', 'Monitor', 'Printer', 'Desktop', 'Server'];
+const STATUSES = [
+  "All Status",
+  "OPEN",
+  "IN_PROGRESS",
+  "RESOLVED",
+  "REJECTED"
+];
 
 /* ── Schedule / Edit Modal ── */
 const MaintenanceModal = ({ record, onClose, onSave }) => {
   const isEdit = !!record?.id;
   const [form, setForm] = useState(record || {
-    category:'Laptop', assetName:'', assetId:'', issue:'',
-    priority:'Medium', requestedBy:'', assignedTo:'', cost:'', status:'Requested',
+
+    assetName:'',
+    assetId:'',
+    issueDescription:'',
+    employeeName:'',
+
+    assignedTo:'',
+    cost:null,
+
+    priority:'NOT_ASSIGNED',
+    status:'OPEN'
+
   });
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const statusOptions = !form.assignedTo
+
+  ? ["OPEN"]
+
+  : ["IN_PROGRESS","RESOLVED","REJECTED"];
 
   return (
     <div className="ap-modal-overlay" onClick={onClose}>
@@ -64,32 +55,86 @@ const MaintenanceModal = ({ record, onClose, onSave }) => {
         <h2 className="ap-modal-title">{isEdit ? 'Edit Maintenance' : 'Schedule Maintenance'}</h2>
         <div className="ap-modal-fields">
           {[
-            { label:'Asset Name',   key:'assetName',   type:'text' },
-            { label:'Asset ID',     key:'assetId',     type:'text' },
-            { label:'Issue',        key:'issue',       type:'text' },
-            { label:'Requested By', key:'requestedBy', type:'text' },
+            { label:'Asset Name',   key:'assetName',   type:'text', readOnly:true },
+            { label:'Asset ID',     key:'assetId',     type:'text', readOnly:true },
+            { label:'Issue',        key:'issueDescription', type:'text', readOnly:true },
+            { label:'Requested By', key:'employeeName', type:'text', readOnly:true },
+
             { label:'Assigned To',  key:'assignedTo',  type:'text' },
             { label:'Cost (₹)',     key:'cost',        type:'number' },
-          ].map(({ label, key, type }) => (
+          ].map(({ label, key, type, readOnly }) => (
             <div key={key} className="ap-modal-field">
               <label className="ap-modal-label">{label}</label>
-              <input className="ap-modal-input" type={type}
-                value={form[key] || ''} onChange={e => set(key, e.target.value)} />
+
+              <input
+                className={`ap-modal-input ${readOnly ? "ap-readonly" : ""}`}
+                type={type || "text"}
+                value={form[key] || ""}
+                readOnly={readOnly}
+                onChange={e => {
+                if(readOnly) return;
+
+                const value = e.target.value;
+
+                set(key, value);
+
+                if(key === "assignedTo"){
+
+                  if(value && form.status === "OPEN"){
+
+                    set("status","IN_PROGRESS");
+
+                  }
+
+                  if(!value){
+
+                    set("status","OPEN");
+
+                  }
+
+                }
+
+              }}
+              />
+
             </div>
           ))}
           {[
-            { label:'Category', key:'category', opts:['Laptop','Phone','Monitor','Printer','Desktop','Server'] },
-            { label:'Priority', key:'priority', opts:['High','Critical','Medium','Low','Approved'] },
-            { label:'Status',   key:'status',   opts:['Requested','In Progress','Completed','Approved'] },
-          ].map(({ label, key, opts }) => (
-            <div key={key} className="ap-modal-field">
-              <label className="ap-modal-label">{label}</label>
-              <select className="ap-modal-input" value={form[key]}
-                onChange={e => set(key, e.target.value)}>
-                {opts.map(o => <option key={o}>{o}</option>)}
-              </select>
-            </div>
-          ))}
+              {
+                label:'Priority',
+                key:'priority',
+                opts:['NOT_ASSIGNED','LOW','MEDIUM','HIGH','CRITICAL']
+              },
+
+              {
+                label:'Status',
+                key:'status',
+                opts:statusOptions
+              },
+            ].map(({ label, key, opts }) => (
+
+              <div key={key} className="ap-modal-field">
+
+                <label className="ap-modal-label">{label}</label>
+
+                <select
+                  className="ap-modal-input"
+                  disabled={key === "status" && !form.assignedTo}
+                  value={form[key] || opts[0]}
+                  onChange={e => set(key, e.target.value)}
+                >
+
+                  {opts.map(o => (
+                    <option key={o} value={o}>
+                      {o.replace("_"," ")}
+                    </option>
+                  ))}
+
+                </select>
+
+              </div>
+
+            ))}
         </div>
         <div className="ap-modal-actions">
           <button className="ap-cancel-btn" onClick={onClose}>Cancel</button>
@@ -110,10 +155,9 @@ const ViewModal = ({ record, onClose }) => (
       <div className="asgn-view-grid">
         {[
           ['Asset',        `${record.assetName} (${record.assetId})`],
-          ['Category',      record.category],
-          ['Issue',         record.issue],
+          ['Issue',         record.issueDescription],
           ['Priority',      record.priority],
-          ['Requested By',  record.requestedBy],
+          ['Requested By',  record.employeeName],
           ['Assigned To',   record.assignedTo || '—'],
           ['Cost',          record.cost ? `₹ ${record.cost.toLocaleString()}` : '—'],
           ['Status',        record.status],
@@ -131,35 +175,142 @@ const ViewModal = ({ record, onClose }) => (
   </div>
 );
 
+const PRIORITIES = [
+  "All Priority",
+  "NOT_ASSIGNED",
+  "LOW",
+  "MEDIUM",
+  "HIGH",
+  "CRITICAL"
+];
+
+const priorityStyle = {
+
+  NOT_ASSIGNED:{
+    color:"#475569",
+    background:"#e2e8f0"
+  },
+
+  LOW:{
+    color:"#065f46",
+    background:"#d1fae5"
+  },
+
+  MEDIUM:{
+    color:"#92400e",
+    background:"#fde68a"
+  },
+
+  HIGH:{
+    color:"#7c2d12",
+    background:"#fed7aa"
+  },
+
+  CRITICAL:{
+    color:"#ffffff",
+    background:"#991b1b"
+  }
+
+};
+
 /* ── Main ── */
 const MaintenancePage = () => {
-  const [records,  setRecords]  = useState(initialRecords);
+  const [records, setRecords] = useState([]);
   const [search,   setSearch]   = useState('');
   const [status,   setStatus]   = useState('All Status');
   const [priority, setPriority] = useState('All Priority');
-  const [category, setCategory] = useState('All Categories');
   const [modal,    setModal]    = useState(null);
 
+
+  useEffect(() => {
+
+    const fetchRequests = async () => {
+
+      try {
+
+        const token = localStorage.getItem("token");
+
+        const res = await API.get("/maintenance");
+
+        setRecords(res.data);
+
+      }
+      catch(err){
+
+        console.error(err);
+
+      }
+
+    };
+
+    fetchRequests();
+
+  }, []);  
+
   const filtered = records.filter(r => {
+
     const q = search.toLowerCase();
-    const matchSearch   = r.assetName.toLowerCase().includes(q) ||
-                          r.assetId.toLowerCase().includes(q)   ||
-                          r.issue.toLowerCase().includes(q)     ||
-                          r.requestedBy.toLowerCase().includes(q);
-    const matchStatus   = status   === 'All Status'     || r.status   === status;
-    const matchPriority = priority === 'All Priority'   || r.priority === priority;
-    const matchCategory = category === 'All Categories' || r.category === category;
-    return matchSearch && matchStatus && matchPriority && matchCategory;
+
+    const matchSearch =
+        r.assetName.toLowerCase().includes(q) ||
+        r.assetId.toLowerCase().includes(q) ||
+        r.issueDescription.toLowerCase().includes(q) ||
+        r.employeeName.toLowerCase().includes(q);
+
+    const matchStatus =
+        status === "All Status" ||
+        r.status === status;
+
+    const matchPriority =
+        priority === "All Priority" ||
+        r.priority === priority;
+
+    return matchSearch && matchStatus && matchPriority;
+
   });
 
-  const handleSave = (form) => {
-    const parsed = { ...form, cost: form.cost ? Number(form.cost) : null };
-    if (parsed.id) {
-      setRecords(prev => prev.map(r => r.id === parsed.id ? parsed : r));
-    } else {
-      setRecords(prev => [...prev, { ...parsed, id: Date.now() }]);
+  const handleSave = async (form) => {
+
+    try {
+
+      const payload = {
+
+        id: form.id || null,
+
+        assetMongoId: form.assetMongoId || null,
+        assignmentId: form.assignmentId || null,
+
+        employeeMongoId: form.employeeMongoId || null,
+        employeeName: form.employeeName,
+
+        assetName: form.assetName,
+        assetId: form.assetId,
+
+        issueDescription: form.issueDescription,
+
+        assignedTo: form.assignedTo || null,
+
+        cost: form.cost ? Number(form.cost) : null,
+
+        priority: form.priority || null,
+
+        status: form.status || "OPEN"
+
+      };
+
+      await API.post("/maintenance/schedule", payload);
+
+      setModal(null);
+
+      window.location.reload();
+
     }
-    setModal(null);
+    catch(err){
+
+      console.error("error saving maintenance", err);
+
+    }
+
   };
 
   return (
@@ -184,7 +335,6 @@ const MaintenancePage = () => {
         {[
           { val: status,   set: setStatus,   opts: STATUSES,   placeholder: 'All Status'   },
           { val: priority, set: setPriority, opts: PRIORITIES, placeholder: 'All Priority' },
-          { val: category, set: setCategory, opts: CATEGORIES, placeholder: 'All Categories' },
         ].map(({ val, set, opts }) => (
           <div key={opts[0]} className="ap-select-wrap">
             <select className="ap-select" value={val} onChange={e => set(e.target.value)}>
@@ -212,27 +362,22 @@ const MaintenancePage = () => {
               <tr key={r.id} className={`ap-tr ${i % 2 === 1 ? 'ap-tr-alt' : ''}`}>
 
                 {/* Asset Name + icon */}
-                <td className="ap-td">
-                  <div className="asgn-asset-name-wrap">
-                    <CategoryIcon category={r.category} />
-                    <span className="ap-td-name">{r.assetName}</span>
-                  </div>
-                </td>
+                <td className="ap-td">{r.assetName}</td>
 
                 <td className="ap-td asgn-id-cell">{r.assetId}</td>
 
                 {/* Issue — wraps */}
-                <td className="ap-td mnt-issue-cell">{r.issue}</td>
+                <td className="ap-td mnt-issue-cell">{r.issueDescription}</td>
 
                 {/* Priority badge */}
                 <td className="ap-td">
                   <span className="ap-status-badge mnt-priority-badge"
                     style={priorityStyle[r.priority] || {}}>
-                    {r.priority}
+                    {r.priority || "NOT_ASSIGNED"}
                   </span>
                 </td>
 
-                <td className="ap-td">{r.requestedBy}</td>
+                <td className="ap-td">{r.employeeName}</td>
                 <td className="ap-td mnt-assigned-cell">{r.assignedTo || '—'}</td>
 
                 {/* Cost */}
@@ -242,8 +387,8 @@ const MaintenancePage = () => {
 
                 {/* Status badge */}
                 <td className="ap-td">
-                  <span className="ap-status-badge" style={statusStyle[r.status] || {}}>
-                    {r.status}
+                  <span className="ap-status-badge" style={statusStyles[r.status] || {}}>
+                    {statusLabels[r.status]}
                   </span>
                 </td>
 
@@ -256,7 +401,7 @@ const MaintenancePage = () => {
                   </button>
                   <button className="ap-action-btn mnt-edit-action-btn"
                     onClick={() => setModal({ type:'edit', data:r })}>
-                    <AlignJustify size={13} />
+                    <Pencil size={14} />
                   </button>
                 </td>
               </tr>
