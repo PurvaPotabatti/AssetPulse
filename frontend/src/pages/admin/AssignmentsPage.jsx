@@ -95,7 +95,45 @@ const [form, setForm] = useState({
 
   });
 
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const [errors, setErrors] = useState({});
+
+  const set = (k, v) => {
+
+    setForm(f => ({
+      ...f,
+      [k]: v
+    }));
+
+    /*
+      remove error when user updates field
+    */
+
+    setErrors(prev => ({
+      ...prev,
+      [k]: ""
+    }));
+
+  };
+
+
+  const validate = () => {
+
+    let newErrors = {};
+
+    if (!form.assetId)
+      newErrors.assetId = "Asset required";
+
+    if (!form.employeeId)
+      newErrors.employeeId = "Employee required";
+
+    if (!form.expectedReturnDate)
+      newErrors.expectedReturnDate = "Return date required";
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+
+  };
 
   return (
     <div className="ap-modal-overlay" onClick={onClose}>
@@ -115,7 +153,6 @@ const [form, setForm] = useState({
               value={form.assetId}
               onChange={e => set('assetId', e.target.value)}
             >
-
               <option value="">Select Asset</option>
 
               {assets.map(a => (
@@ -129,6 +166,11 @@ const [form, setForm] = useState({
               ))}
 
             </select>
+            {errors.assetId && (
+              <span className="ap-error-text">
+                {errors.assetId}
+              </span>
+            )}
 
           </div>
 
@@ -145,6 +187,7 @@ const [form, setForm] = useState({
               value={form.employeeId}
               onChange={e => set('employeeId', e.target.value)}
             >
+           
 
               <option value="">Select Employee</option>
 
@@ -159,7 +202,11 @@ const [form, setForm] = useState({
               ))}
 
             </select>
-
+            {errors.employeeId && (
+              <span className="ap-error-text">
+                {errors.employeeId}
+              </span>
+            )} 
           </div>
 
 
@@ -175,7 +222,11 @@ const [form, setForm] = useState({
               value={form.expectedReturnDate}
               onChange={e => set('expectedReturnDate', e.target.value)}
             />
-
+            {errors.expectedReturnDate && (
+              <span className="ap-error-text">
+                {errors.expectedReturnDate}
+              </span>
+            )}
           </div>
 
 
@@ -220,8 +271,17 @@ const [form, setForm] = useState({
         </div>
         <div className="ap-modal-actions">
           <button className="ap-cancel-btn" onClick={onClose}>Cancel</button>
-          <button className="ap-save-btn" onClick={() => onSave(form)}>
-            {isEdit ? 'Save Changes' : 'Assign Asset'}
+          <button
+            className="ap-save-btn"
+            onClick={() => {
+
+              if(!validate()) return;
+
+              onSave(form);
+
+            }}
+          >            
+          {isEdit ? 'Save Changes' : 'Assign Asset'}
           </button>
         </div>
       </div>

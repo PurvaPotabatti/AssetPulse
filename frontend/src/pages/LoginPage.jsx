@@ -104,6 +104,16 @@ const handleSubmit = async (e) => {
 
     login(user);
 
+    /*
+      store user details for global usage
+    */
+
+    localStorage.setItem("userId", user.userId);
+    localStorage.setItem("name", user.name);
+    localStorage.setItem("email", user.email);
+    localStorage.setItem("role", user.role);
+    localStorage.setItem("token", user.token);
+
     alert("Login successful");
 
     /*

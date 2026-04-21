@@ -25,14 +25,17 @@ const STATUSES = [
 ];
 
 /* ── Schedule / Edit Modal ── */
-const MaintenanceModal = ({ record, onClose, onSave }) => {
+const MaintenanceModal = ({ record, assets, onClose, onSave }) => {
   const isEdit = !!record?.id;
   const [form, setForm] = useState(record || {
 
+    assetMongoId:'',
     assetName:'',
     assetId:'',
+
     issueDescription:'',
-    employeeName:'',
+
+    employeeName: localStorage.getItem("name") || "ADMIN",
 
     assignedTo:'',
     cost:null,
@@ -41,6 +44,7 @@ const MaintenanceModal = ({ record, onClose, onSave }) => {
     status:'OPEN'
 
   });
+
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   const statusOptions = !form.assignedTo
@@ -54,10 +58,79 @@ const MaintenanceModal = ({ record, onClose, onSave }) => {
       <div className="ap-modal" onClick={e => e.stopPropagation()}>
         <h2 className="ap-modal-title">{isEdit ? 'Edit Maintenance' : 'Schedule Maintenance'}</h2>
         <div className="ap-modal-fields">
+          <div className="ap-modal-field">
+
+            <label className="ap-modal-label">
+              Asset
+            </label>
+
+            {isEdit ? (
+
+              <input
+                className="ap-modal-input ap-readonly"
+                value={`${form.assetName} (${form.assetId})`}
+                readOnly
+              />
+
+            ) : (
+
+              <select
+                className="ap-modal-input"
+                value={form.assetMongoId || ""}
+                onChange={(e) => {
+
+                  const selected = assets.find(
+                    a => a.id === e.target.value
+                  );
+
+                  setForm(f => ({
+                    ...f,
+
+                    assetMongoId: selected.id,
+
+                    assetName: selected.name,
+
+                    assetId: selected.assetId
+
+                  }));
+
+                }}
+              >
+
+                <option value="">
+                  Select Asset
+                </option>
+
+                {assets.map(a => (
+
+                  <option key={a.id} value={a.id}>
+
+                    {a.name} ({a.assetId})
+
+                  </option>
+
+                ))}
+
+              </select>
+
+            )}
+
+          </div> 
+          <div className="ap-modal-field">
+
+            <label className="ap-modal-label">
+              Asset ID
+            </label>
+
+            <input
+              className="ap-modal-input ap-readonly"
+              value={form.assetId || ""}
+              readOnly
+            />
+
+          </div>                  
           {[
-            { label:'Asset Name',   key:'assetName',   type:'text', readOnly:true },
-            { label:'Asset ID',     key:'assetId',     type:'text', readOnly:true },
-            { label:'Issue',        key:'issueDescription', type:'text', readOnly:true },
+            { label:'Issue',        key:'issueDescription', type:'text', readOnly:isEdit },
             { label:'Requested By', key:'employeeName', type:'text', readOnly:true },
 
             { label:'Assigned To',  key:'assignedTo',  type:'text' },
@@ -220,19 +293,28 @@ const MaintenancePage = () => {
   const [status,   setStatus]   = useState('All Status');
   const [priority, setPriority] = useState('All Priority');
   const [modal,    setModal]    = useState(null);
+  const [assets, setAssets] = useState([]);
 
 
   useEffect(() => {
 
-    const fetchRequests = async () => {
+    const fetchData = async () => {
 
       try {
 
-        const token = localStorage.getItem("token");
+        /*
+          fetch maintenance records
+        */
+        const maintenanceRes = await API.get("/maintenance");
 
-        const res = await API.get("/maintenance");
+        setRecords(maintenanceRes.data);
 
-        setRecords(res.data);
+        /*
+          fetch assets
+        */
+        const assetsRes = await API.get("/assets");
+
+        setAssets(assetsRes.data);
 
       }
       catch(err){
@@ -243,9 +325,9 @@ const MaintenancePage = () => {
 
     };
 
-    fetchRequests();
+    fetchData();
 
-  }, []);  
+  }, []); 
 
   const filtered = records.filter(r => {
 
@@ -268,6 +350,38 @@ const MaintenancePage = () => {
     return matchSearch && matchStatus && matchPriority;
 
   });
+
+const activeMaintenanceAssetIds = records
+  .filter(r =>
+    r.status === "OPEN" ||
+    r.status === "IN_PROGRESS"
+  )
+  .map(r => r.assetId);
+
+
+  const availableAssetsForMaintenance = assets.filter(a => {
+
+    /*
+      exclude assets already under maintenance
+    */
+
+    if(activeMaintenanceAssetIds.includes(a.assetId))
+      return false;
+
+    /*
+      exclude lifecycle statuses
+    */
+
+    if(
+      a.status === "IN_MAINTENANCE" ||
+      a.status === "RETIRED" ||
+      a.status === "LOST"
+    )
+      return false;
+
+    return true;
+
+  });  
 
   const handleSave = async (form) => {
 
@@ -411,8 +525,22 @@ const MaintenancePage = () => {
       </div>
 
       {/* Modals */}
-      {modal?.type === 'add'  && <MaintenanceModal record={null}       onClose={() => setModal(null)} onSave={handleSave} />}
-      {modal?.type === 'edit' && <MaintenanceModal record={modal.data} onClose={() => setModal(null)} onSave={handleSave} />}
+      {modal?.type === 'add'  &&
+        <MaintenanceModal
+          record={null}
+          assets={availableAssetsForMaintenance}
+          onClose={() => setModal(null)}
+          onSave={handleSave}
+        />
+      }
+      {modal?.type === 'edit' &&
+        <MaintenanceModal
+          record={modal.data}
+          assets={availableAssetsForMaintenance}
+          onClose={() => setModal(null)}
+          onSave={handleSave}
+        />
+      }
       {modal?.type === 'view' && <ViewModal        record={modal.data} onClose={() => setModal(null)} />}
     </div>
   );

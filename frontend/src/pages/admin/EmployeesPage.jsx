@@ -40,7 +40,22 @@ const EmployeeModal = ({ employee, onClose, onSave }) => {
     }
   );
 
-  const set = (key, val) => setForm(f => ({ ...f, [key]: val }));
+  const set = (key, val) => {
+
+    setForm(f => ({
+      ...f,
+      [key]: val
+    }));
+
+    /*
+      clear error when user starts typing
+    */
+    setErrors(prev => ({
+      ...prev,
+      [key]: ""
+    }));
+
+  };
 
   const validate = () => {
 

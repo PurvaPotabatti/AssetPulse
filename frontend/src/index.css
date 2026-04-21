@@ -1311,6 +1311,7 @@ body {
   display: flex;
   gap: 0.5rem;
   align-items: center;
+  justify-content:center;
 }
 
 .ap-action-btn {
@@ -2131,6 +2132,9 @@ body {
 .ap-td-actions{
   display:flex;
   gap:0.35rem;
+  text-align:center;
+  justify-content:center;
+  align-items:center;
 }
 
 

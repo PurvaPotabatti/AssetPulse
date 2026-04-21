@@ -4,6 +4,8 @@ import com.assetpulse.assetpulse.model.MaintenanceRequest;
 import com.assetpulse.assetpulse.model.Assignment;
 import com.assetpulse.assetpulse.repository.AssignmentRepository;
 import com.assetpulse.assetpulse.repository.MaintenanceRepository;
+import com.assetpulse.assetpulse.model.Asset;
+import com.assetpulse.assetpulse.repository.AssetRepository;
 
 import org.springframework.stereotype.Service;
 
@@ -14,13 +16,16 @@ public class MaintenanceService {
 
     private final MaintenanceRepository maintenanceRepository;
     private final AssignmentRepository assignmentRepository;
+    private final AssetRepository assetRepository;
 
     public MaintenanceService(
             MaintenanceRepository maintenanceRepository,
-            AssignmentRepository assignmentRepository
+            AssignmentRepository assignmentRepository,
+            AssetRepository assetRepository
     ) {
         this.maintenanceRepository = maintenanceRepository;
         this.assignmentRepository = assignmentRepository;
+        this.assetRepository = assetRepository;
     }
 
 
@@ -111,6 +116,51 @@ public class MaintenanceService {
             request.setCreatedAt(
                     java.time.LocalDateTime.now()
             );
+
+    /*
+        FETCH ASSET
+     */
+        Asset asset = assetRepository
+                .findById(request.getAssetMongoId())
+                .orElseThrow(() ->
+                        new RuntimeException("Asset not found")
+                );
+
+    /*
+        UPDATE ASSET LIFECYCLE STATUS
+     */
+        switch(request.getStatus()){
+
+            case "IN_PROGRESS":
+
+                asset.setStatus("IN_MAINTENANCE");
+
+                break;
+
+            case "RESOLVED":
+
+            /*
+               asset goes back to employee
+             */
+
+                asset.setStatus("ASSIGNED");
+
+                break;
+
+            case "REJECTED":
+
+                asset.setStatus("ASSIGNED");
+
+                break;
+
+            case "OPEN":
+
+                asset.setStatus("ASSIGNED");
+
+                break;
+        }
+
+        assetRepository.save(asset);
 
         return maintenanceRepository.save(request);
 

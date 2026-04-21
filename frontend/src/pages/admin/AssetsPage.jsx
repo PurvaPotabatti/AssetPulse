@@ -25,7 +25,23 @@ const AssetModal = ({ asset, onClose, onSave }) => {
   );
 
 
-  const set = (key, val) => setForm(f => ({ ...f, [key]: val }));
+  const set = (key, val) => {
+
+    setForm(f => ({
+      ...f,
+      [key]: val
+    }));
+
+    /*
+      remove error for that field
+    */
+
+    setErrors(prev => ({
+      ...prev,
+      [key]: ""
+    }));
+
+  };
 
   const validate = () => {
 
@@ -133,9 +149,9 @@ const AssetModal = ({ asset, onClose, onSave }) => {
                 value={form.status}
                 onChange={e => set('status', e.target.value)}
               >
-                <option>Available</option>
-                <option>Assigned</option>
-                <option>Maintenance</option>
+              <option value="AVAILABLE">Available</option>
+              <option value="ASSIGNED">Assigned</option>
+              <option value="IN_MAINTENANCE">In Maintenance</option>
               </select>
             </div>
           </div>
