@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from "react";
+import API from "../../api/axiosConfig";
 import {
   Layers, Tag, Monitor, Wrench,
   Users, AlertTriangle, Trash2,
@@ -20,64 +21,57 @@ const CategoryIcon = ({ category }) => {
 };
 
 /* ── Stat cards data ── */
-const statCards = [
+const statCards = (stats) => [
   {
-    label: 'Total Assets', sub: '103 A', value: 128,
+    label: 'Total Assets',
+    value: stats.totalAssets,
     icon: <Layers size={22} />,
-    bg: 'hsl(258,60%,93%)', iconBg: 'hsl(258,55%,82%)', iconColor: 'hsl(258,55%,48%)',
+    bg: 'hsl(258,60%,93%)',
+    iconBg: 'hsl(258,55%,82%)',
+    iconColor: 'hsl(258,55%,48%)',
   },
   {
-    label: 'Assigned', sub: 'Assets', value: 87,
+    label: 'Assigned Assets',
+    value: stats.assignedAssets,
     icon: <Tag size={22} />,
-    bg: 'hsl(214,70%,93%)', iconBg: 'hsl(214,65%,82%)', iconColor: 'hsl(214,80%,46%)',
+    bg: 'hsl(214,70%,93%)',
+    iconBg: 'hsl(214,65%,82%)',
+    iconColor: 'hsl(214,80%,46%)',
   },
   {
-    label: 'Available', sub: 'Assets', value: 41,
+    label: 'Available Assets',
+    value: stats.availableAssets,
     icon: <Monitor size={22} />,
-    bg: 'hsl(158,50%,91%)', iconBg: 'hsl(158,50%,80%)', iconColor: 'hsl(158,55%,35%)',
+    bg: 'hsl(158,50%,91%)',
+    iconBg: 'hsl(158,50%,80%)',
+    iconColor: 'hsl(158,55%,35%)',
   },
   {
-    label: 'In', sub: 'Maintenance', value: 5,
+    label: 'In Maintenance',
+    value: stats.inMaintenance,
     icon: <Wrench size={22} />,
-    bg: 'hsl(22,80%,93%)', iconBg: 'hsl(22,75%,82%)', iconColor: 'hsl(22,80%,45%)',
+    bg: 'hsl(22,80%,93%)',
+    iconBg: 'hsl(22,75%,82%)',
+    iconColor: 'hsl(22,80%,45%)',
   },
   {
-    label: 'In Maintenance', sub: 'Total', value: 5,
-    icon: <Wrench size={22} />,
-    bg: 'hsl(38,85%,93%)', iconBg: 'hsl(38,80%,82%)', iconColor: 'hsl(38,80%,42%)',
-  },
-  {
-    label: 'Total Employees', sub: 'Sales', value: 22,
+    label: 'Total Employees',
+    value: stats.employees,
     icon: <Users size={22} />,
-    bg: 'hsl(214,65%,93%)', iconBg: 'hsl(214,60%,82%)', iconColor: 'hsl(214,75%,46%)',
+    bg: 'hsl(214,65%,93%)',
+    iconBg: 'hsl(214,60%,82%)',
+    iconColor: 'hsl(214,75%,46%)',
   },
   {
-    label: 'Pending', sub: 'Requests', value: 3,
+    label: 'Open Requests',
+    value: stats.openRequests,
     icon: <AlertTriangle size={22} />,
-    bg: 'hsl(0,70%,94%)', iconBg: 'hsl(0,65%,85%)', iconColor: 'hsl(0,70%,50%)',
-  },
-  {
-    label: 'Trash', sub: '', value: null,
-    icon: <Trash2 size={22} />,
-    bg: 'hsl(214,20%,94%)', iconBg: 'hsl(214,18%,85%)', iconColor: 'hsl(214,20%,50%)',
-  },
+    bg: 'hsl(0,70%,94%)',
+    iconBg: 'hsl(0,65%,85%)',
+    iconColor: 'hsl(0,70%,50%)',
+  }
 ];
 
-/* ── Recent Assignments data ── */
-const recentAssignments = [
-  { id:1, category:'Laptop',  assetName:'Dell XPS',      employee:'Sarah Johnson',    department:'IT',        date:'Apr 12, 2024' },
-  { id:2, category:'Laptop',  assetName:'HP EliteBook',  employee:'David Smith',      department:'Sales',     date:'Apr 10, 2024' },
-  { id:3, category:'Phone',   assetName:'iPhone 12',     employee:'Emma Davis',       department:'Marketing', date:'Apr 8, 2024'  },
-  { id:4, category:'Printer', assetName:'Epson Printer', employee:'Michael Rodriguez',department:'',          date:'Apr 5, 2024'  },
-];
-
-/* ── Recent Maintenance data ── */
-const recentMaintenance = [
-  { id:1, category:'Laptop',  assetName:'Dell XPS',      assetId:'',      issue:'Screen flickering frequently', priority:'High',     status:'In Progress' },
-  { id:2, category:'Phone',   assetName:'iPhone 12',     assetId:'',      issue:'Battery draining quickly',     priority:'High',     status:'Requested'   },
-  { id:3, category:'Printer', assetName:'Epson Printer', assetId:'',      issue:'Paper jam issues',             priority:'Low',      status:'Completed'   },
-  { id:4, category:'Printer', assetName:'Epson Printer', assetId:'AST002',issue:'',                             priority:'Assigned', status:'View'        },
-];
 
 /* ── Badge styles ── */
 const priorityStyle = {
@@ -97,7 +91,238 @@ const statusStyle = {
 
 /* ── AdminDashboard ── */
 const AdminDashboard = ({ user, onNavChange }) => {
-  const name = user?.name || 'John Admin';
+  const name = user?.name || 'Purva';
+
+  /* dashboard state */
+
+  const [stats, setStats] = useState({
+    totalAssets: 0,
+    assignedAssets: 0,
+    availableAssets: 0,
+    inMaintenance: 0,
+    employees: 0,
+    openRequests: 0,
+  });
+
+  const [recentAssignments, setRecentAssignments] = useState([]);
+  const [recentMaintenance, setRecentMaintenance] = useState([]);
+
+
+
+
+  useEffect(() => {
+
+    loadDashboard();
+
+  }, []);
+
+  const loadDashboard = async () => {
+
+    try {
+
+      console.log("dashboard loading...");
+
+      /* fetch assets */
+      const assetsRes =
+        await API.get("/assets");
+
+      console.log(
+        "assets response",
+        assetsRes.data
+      );
+
+      const assets =
+        assetsRes.data;
+
+
+      /* fetch employees */
+      const user = JSON.parse(localStorage.getItem("user"));
+
+      const employeesRes = await API.get(
+        `/users/${user.userId}`
+      );
+
+      console.log(
+        "employees response",
+        employeesRes.data
+      );
+
+      const employees =
+        employeesRes.data;
+
+
+      /* update stats */
+      setStats(prev => ({
+
+        ...prev,
+
+        totalAssets:
+          assets.length,
+
+        assignedAssets:
+          assets.filter(a =>
+            a.status === "ASSIGNED"
+          ).length,
+
+        availableAssets:
+          assets.filter(a =>
+            a.status === "AVAILABLE"
+          ).length,
+
+        inMaintenance:
+          assets.filter(a =>
+            a.status === "IN_MAINTENANCE"
+          ).length,
+
+        employees:
+          employees.length,
+
+      }));
+
+
+
+      /*
+   maintenance requests
+  */
+  const maintenanceRes =
+    await API.get("/maintenance");
+
+  console.log(
+    "maintenance response",
+    maintenanceRes.data
+  );
+
+  /*
+    count OPEN requests
+  */
+  const openRequests =
+    maintenanceRes.data.filter(
+      r =>
+        r.status === "OPEN"
+    ).length;
+
+  setStats(prev => ({
+
+    ...prev,
+
+    openRequests: openRequests
+
+  }));
+
+
+  /*
+   recent assignments
+  */
+  const assignmentsRes =
+    await API.get("/assignments");
+
+  console.log(
+    "assignments response",
+    assignmentsRes.data
+  );
+
+  /*
+    latest 5 assignments
+  */
+  const latestAssignments =
+    assignmentsRes.data
+      .sort(
+        (a,b)=>
+          new Date(b.assignedDate) -
+          new Date(a.assignedDate)
+      )
+      .slice(0,5)
+      .map(a => ({
+
+        id: a.id,
+
+        category:
+          a.category || "Laptop",
+
+        assetName:
+          a.assetName,
+
+        employee:
+          a.employeeName,
+
+        department:
+          a.department || "-",
+
+        date:
+          new Date(a.assignedDate)
+            .toLocaleDateString(
+              "en-IN",
+              {
+                day:"2-digit",
+                month:"short",
+                year:"numeric"
+              }
+            )
+
+      }));
+
+  setRecentAssignments(
+    latestAssignments
+  );
+
+
+  /*
+   recent maintenance requests
+*/
+const latestMaintenance =
+  maintenanceRes.data
+    .sort(
+      (a,b)=>
+        new Date(b.createdAt) -
+        new Date(a.createdAt)
+    )
+    .slice(0,5)
+    .map(r => ({
+
+      id: r.id,
+
+      category:
+        r.assetCategory || "Laptop",
+
+      assetName:
+        r.assetName || "Asset",
+
+      assetId:
+        r.assetId || "",
+
+      issue:
+        r.issueDescription || "-",
+
+      priority:
+        r.priority || "Low",
+
+      status:
+        r.status === "OPEN"
+          ? "Requested"
+          : r.status === "IN_PROGRESS"
+          ? "In Progress"
+          : r.status === "COMPLETED"
+          ? "Completed"
+          : "Requested"
+
+    }));
+
+setRecentMaintenance(
+  latestMaintenance
+);
+
+
+    }
+    catch (error) {
+
+      console.error(
+        "dashboard error",
+        error
+      );
+
+    }
+
+  };
 
   return (
     <div className="db-page">
@@ -108,7 +333,7 @@ const AdminDashboard = ({ user, onNavChange }) => {
       {/* ── Stat cards grid ── */}
       <div className="db-stats-card">
         <div className="db-stats-grid">
-          {statCards.map((card, i) => (
+          {statCards(stats).map((card, i) => (
             <div key={i} className="db-stat-tile" style={{ background: card.bg }}>
               <div className="db-stat-icon" style={{ background: card.iconBg, color: card.iconColor }}>
                 {card.icon}
@@ -178,7 +403,7 @@ const AdminDashboard = ({ user, onNavChange }) => {
           <table className="db-mini-table">
             <thead>
               <tr>
-                {['Asset Name','Issue','Priority','Status','Status'].map((h, i) => (
+                {['Asset Name','Issue','Priority','Status','Action'].map((h, i) => (
                   <th key={i} className="db-mini-th">{h}</th>
                 ))}
               </tr>
