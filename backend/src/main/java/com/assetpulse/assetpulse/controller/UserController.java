@@ -1,5 +1,6 @@
 package com.assetpulse.assetpulse.controller;
 
+import com.assetpulse.assetpulse.dto.ActivateAccountRequest;
 import com.assetpulse.assetpulse.dto.AuthResponse;
 import com.assetpulse.assetpulse.dto.CreateUserRequest;
 import com.assetpulse.assetpulse.model.User;
@@ -62,6 +63,28 @@ public class UserController {
 
         return userService.updateEmployee(id, request);
 
+    }
+
+
+
+    @PostMapping("/activate")
+    public String activateAccount(@RequestBody ActivateAccountRequest request) {
+
+        userService.activateAccount(
+                request.getToken(),
+                request.getPassword()
+        );
+
+        return "Account activated successfully";
+    }
+
+
+    @PostMapping("/resend-invite/{id}")
+    public String resendInvite(@PathVariable String id) {
+
+        userService.resendInvite(id);
+
+        return "Invite resent successfully";
     }
 
 

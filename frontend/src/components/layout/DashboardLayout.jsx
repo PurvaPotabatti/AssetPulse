@@ -10,7 +10,7 @@ import MaintenancePage from '../../pages/admin/MaintenancePage';
 import AdminDashboard from '../../pages/admin/AdminDashboard';
 import EmployeeDashboard from "../../pages/employee/EmployeeDashboard";
 import MyAssetsPage from "../../pages/employee/MyAssetsPage";
-import MyRequestPage from "../../pages/employee/MyRequestPage";
+import MyRequestsPage from "../../pages/employee/MyRequestsPage";
 import ProfilePage from "../../pages/employee/ProfilePage";
 import Sidebar from "./Sidebar";
 
@@ -25,7 +25,6 @@ const pageTitles = {
   // employee
   'emp-dashboard': 'Dashboard',
   'emp-assets':    'My Assets',
-  'emp-report':    'Report Issue',
   'emp-requests':  'My Requests',
   'emp-profile':   'Profile',
 };
@@ -112,8 +111,13 @@ const DashboardLayout = ({ role = "admin" }) => {
             <EmployeeDashboard user={user} onNavChange={handleNavChange} />
           )}
           {role === "employee" && activeNav === "emp-assets"    && <MyAssetsPage />}
-          {role === "employee" && activeNav === "emp-requests"  && <MyRequestPage />}
+          {role === "employee" && activeNav === "emp-requests" && <MyRequestsPage />}
           {role === "employee" && activeNav === "emp-profile"   && <ProfilePage />}
+
+            {/* fallback */}
+            {!activeNav && role === "employee" && (
+              <EmployeeDashboard user={user} onNavChange={handleNavChange} />
+            )}
         </main>
       </div>
     </div>

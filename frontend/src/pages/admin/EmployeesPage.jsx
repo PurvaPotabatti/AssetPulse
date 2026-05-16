@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Search, ChevronDown, Plus, Pencil, Trash2 } from 'lucide-react';
+import { Search, ChevronDown, Plus, Pencil, Trash2, Mail } from 'lucide-react';
 import API from "../../api/axiosConfig";
 import { useAuth } from "../../context/AuthContext";
 
@@ -247,6 +247,8 @@ const handleSave = async (form) => {
 
       });
 
+      alert("Employee invited successfully. An email with activation instructions has been sent.");
+
     }
 
     /*
@@ -270,12 +272,28 @@ const handleSave = async (form) => {
     setModal(null);
 
   }
-  catch(err) {
+  catch (err) {
 
     console.error(err);
 
-    alert("Error saving employee");
+    const message =
+      err.response?.data?.message ||
+      err.response?.data ||
+      "";
 
+    if (message.includes("Email already exists")) {
+
+      alert("Employee already exists with this email");
+
+    } else if (err.response?.status === 403) {
+
+      alert("Session expired. Please login again");
+
+    } else {
+
+      alert("Something went wrong while adding employee");
+
+    }
   }
 
 };
@@ -292,6 +310,24 @@ const handleDelete = async (id) => {
   catch(err) {
 
     console.error(err);
+
+  }
+
+};
+
+const handleResendInvite = async (id) => {
+
+  try {
+
+    await API.post(`/users/resend-invite/${id}`);
+
+    alert("Invite email resent successfully");
+
+  } catch (err) {
+
+    console.error(err);
+
+    alert("Failed to resend invite");
 
   }
 
@@ -373,6 +409,15 @@ const handleDelete = async (id) => {
                       <Pencil size={13} />
                       Edit
                     </button>
+                    {emp.status === "Invited" && (
+                      <button
+                        className="ap-action-btn ap-resend-btn"
+                        onClick={() => handleResendInvite(emp.id)}
+                      >
+                        <Mail size={13} />
+                        Resend
+                      </button>
+                    )}
                     <button className="ap-action-btn ap-delete-icon-btn" onClick={() => handleDelete(emp.id)}>
                       <Trash2 size={14} />
                     </button>

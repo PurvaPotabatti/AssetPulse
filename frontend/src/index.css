@@ -3305,6 +3305,20 @@ body {
    EMPLOYEE DASHBOARD
    Append at the very bottom of index.css
    ================================================================= */
+/* ================= EMPLOYEE DASHBOARD WHITE BOARD ================= */
+
+.ed-container {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid hsl(214, 32%, 91%);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+
+  /* nice subtle depth */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
 
 /* ── Page wrapper ── */
 .ed-page {
@@ -3336,7 +3350,7 @@ body {
 /* ── Stat grid: 4 equal columns ── */
 .ed-stat-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 0.85rem;
 }
 
@@ -4003,4 +4017,14 @@ gap:10px;
   background:#f8fafc;
   cursor:not-allowed;
   opacity:0.85;
+}
+
+.ap-resend-btn {
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  background: #f8fafc;
+}
+
+.ap-resend-btn:hover {
+  background: #eef2ff;
 }

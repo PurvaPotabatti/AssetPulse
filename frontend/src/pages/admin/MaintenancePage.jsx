@@ -6,7 +6,7 @@ import {
 import axios from "axios";
 import { statusStyles, statusLabels } from "../../utils/statusUtils";
 import API from "../../api/axiosConfig";
-
+import { priorityStyles } from "../../utils/priorityUtils";
 
 const statusStyle = {
   Requested: { color: 'hsl(214,80%,46%)', background: 'hsl(214,80%,94%)', border: '1.5px solid hsl(214,70%,80%)' },
@@ -257,34 +257,6 @@ const PRIORITIES = [
   "CRITICAL"
 ];
 
-const priorityStyle = {
-
-  NOT_ASSIGNED:{
-    color:"#475569",
-    background:"#e2e8f0"
-  },
-
-  LOW:{
-    color:"#065f46",
-    background:"#d1fae5"
-  },
-
-  MEDIUM:{
-    color:"#92400e",
-    background:"#fde68a"
-  },
-
-  HIGH:{
-    color:"#7c2d12",
-    background:"#fed7aa"
-  },
-
-  CRITICAL:{
-    color:"#ffffff",
-    background:"#991b1b"
-  }
-
-};
 
 /* ── Main ── */
 const MaintenancePage = () => {
@@ -486,7 +458,7 @@ const activeMaintenanceAssetIds = records
                 {/* Priority badge */}
                 <td className="ap-td">
                   <span className="ap-status-badge mnt-priority-badge"
-                    style={priorityStyle[r.priority] || {}}>
+                    style={priorityStyles[r.priority] || {}}>
                     {r.priority || "NOT_ASSIGNED"}
                   </span>
                 </td>
