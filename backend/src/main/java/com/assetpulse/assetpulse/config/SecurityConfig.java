@@ -20,6 +20,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
 import com.assetpulse.assetpulse.security.JwtFilter;
@@ -30,6 +31,9 @@ import com.assetpulse.assetpulse.security.JwtFilter;
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
+
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
 
 
     @Bean
@@ -68,7 +72,7 @@ public class SecurityConfig {
         CorsConfiguration config=new CorsConfiguration();
 
         config.setAllowedOrigins(
-                List.of("http://localhost:5173")
+                List.of(frontendUrl)
         );
 
         config.setAllowedMethods(

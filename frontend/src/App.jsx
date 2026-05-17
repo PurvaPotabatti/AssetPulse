@@ -7,6 +7,8 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 import MyAssetsPage from "./pages/employee/MyAssetsPage";
 import SetupPasswordPage from "./pages/SetupPasswordPage";
 import MyRequestsPage from "./pages/employee/MyRequestsPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 function App() {
@@ -20,6 +22,16 @@ function App() {
         <Route path="/" element={<LandingPage />} />
 
         <Route path="/login" element={<LoginPage />} />
+
+        <Route
+          path="/forgot-password"
+          element={<ForgotPasswordPage />}
+        />
+
+        <Route
+          path="/reset-password"
+          element={<ResetPasswordPage />}
+        />
 
         <Route path="/register" element={<RegisterPage />} />
 

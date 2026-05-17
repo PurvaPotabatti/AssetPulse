@@ -30,6 +30,25 @@ public class User {
     private String inviteToken;
     private LocalDateTime inviteExpiry;
 
+    private String resetPasswordToken;
+    private LocalDateTime resetPasswordExpiry;
+
+    public String getResetPasswordToken() {
+        return resetPasswordToken;
+    }
+
+    public void setResetPasswordToken(String resetPasswordToken) {
+        this.resetPasswordToken = resetPasswordToken;
+    }
+
+    public LocalDateTime getResetPasswordExpiry() {
+        return resetPasswordExpiry;
+    }
+
+    public void setResetPasswordExpiry(LocalDateTime resetPasswordExpiry) {
+        this.resetPasswordExpiry = resetPasswordExpiry;
+    }
+
     private String invitedBy;
 
     private LocalDateTime lastLogin;

@@ -121,11 +121,13 @@ const handleSubmit = async (e) => {
     */
     if(user.role === "ADMIN") {
 
+      localStorage.setItem("activeNav", "dashboard");
       navigate("/admin");
 
     }
     else {
 
+      localStorage.setItem("activeNav","emp-dashboard");
       navigate("/employee");
 
     }
@@ -218,6 +220,25 @@ const handleSubmit = async (e) => {
                 {errors.password}
               </span>
             )}
+            <div
+              style={{
+                textAlign: "right",
+                marginTop: "8px"
+              }}
+            >
+
+              <span
+                className="auth-link"
+                style={{
+                  fontSize: "14px",
+                  cursor: "pointer"
+                }}
+                onClick={() => navigate("/forgot-password")}
+              >
+                Forgot Password?
+              </span>
+
+            </div>
 
           </div>
 

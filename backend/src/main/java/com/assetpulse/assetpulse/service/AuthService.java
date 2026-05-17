@@ -11,8 +11,10 @@ import com.assetpulse.assetpulse.repository.UserRepository;
 import com.assetpulse.assetpulse.security.JwtUtil;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 public class AuthService {
@@ -21,14 +23,18 @@ public class AuthService {
     private final RoleRepository roleRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final EmailService emailService;
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
 
     public AuthService(UserRepository userRepository,
-                       RoleRepository roleRepository, JwtUtil jwtUtil) {
+                       RoleRepository roleRepository, JwtUtil jwtUtil, EmailService emailService) {
 
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.jwtUtil = jwtUtil;
         this.passwordEncoder = new BCryptPasswordEncoder();
+        this.emailService = emailService;
     }
 
     /*
@@ -123,4 +129,85 @@ public class AuthService {
                 role.getRoleName(),
                 token
         );    }
+
+    public void forgotPassword(String email) {
+
+        User user = userRepository
+                .findByEmail(email)
+                .orElse(null);
+
+    /*
+      Prevent email enumeration attacks
+    */
+        if (user == null) {
+            return;
+        }
+
+    /*
+      Allow only ACTIVE users
+    */
+        if (!"ACTIVE".equalsIgnoreCase(user.getStatus())) {
+            return;
+        }
+
+        String resetToken = UUID.randomUUID().toString();
+
+        user.setResetPasswordToken(resetToken);
+
+        user.setResetPasswordExpiry(
+                LocalDateTime.now().plusMinutes(30)
+        );
+
+        userRepository.save(user);
+
+        String resetLink = frontendUrl + "/reset-password?token=" + resetToken;
+
+        emailService.sendResetPasswordEmail(
+                user.getEmail(),
+                resetLink
+        );
+    }
+
+    public void resetPassword(
+            String token,
+            String newPassword
+    ) {
+
+        User user = userRepository
+                .findByResetPasswordToken(token)
+                .orElseThrow(() ->
+                        new RuntimeException("Invalid reset link")
+                );
+
+    /*
+      Check token expiry
+    */
+        if (
+                user.getResetPasswordExpiry() == null ||
+                        user.getResetPasswordExpiry().isBefore(LocalDateTime.now())
+        ) {
+
+            throw new RuntimeException(
+                    "Reset link has expired"
+            );
+        }
+
+    /*
+      Update password
+    */
+        user.setPasswordHash(
+                passwordEncoder.encode(newPassword)
+        );
+
+    /*
+      Clear reset token
+    */
+        user.setResetPasswordToken(null);
+
+        user.setResetPasswordExpiry(null);
+
+        user.setUpdatedAt(LocalDateTime.now());
+
+        userRepository.save(user);
+    }
 }
