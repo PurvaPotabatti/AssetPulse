@@ -94,7 +94,9 @@ const MyRequestPage = () => {
   };  
 
   /* Filter */
-  const filtered = requests.filter(r => {
+  const sortedRequests = [...requests].reverse();
+
+  const filtered = sortedRequests.filter(r => {
 
     const q = search.toLowerCase();
 

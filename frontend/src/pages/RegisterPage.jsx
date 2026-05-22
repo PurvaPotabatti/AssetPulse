@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from "react-router-dom";
 import API from "../api/axiosConfig";
+import { successToast, errorToast } from "../utils/toastUtils";
 
 /* SVG icons (inline, no deps) */
 const Icon = {
@@ -98,7 +99,7 @@ const RegisterPage = () => {
 
         console.log("Register success:", response.data);
 
-        alert("Admin registered successfully");
+        successToast("Admin registered successfully");
 
         navigate("/login");
 
@@ -106,7 +107,7 @@ const RegisterPage = () => {
 
         console.error(error);
 
-        alert(
+        errorToast(
           error.response?.data?.message ||
           "Registration failed"
         );

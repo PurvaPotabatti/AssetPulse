@@ -10,6 +10,10 @@ import {
   statusStyles,
   statusLabels
 } from "../../utils/statusUtils";
+import {
+  successToast,
+  errorToast
+} from "../../utils/toastUtils";
 
 
 const STATUSES = ['All Status', 'ASSIGNED', 'IN_MAINTENANCE'];
@@ -198,7 +202,9 @@ const statTiles = [
 ];
 
   /* Filter */
-  const filtered = assets.filter(a => {
+  const sortedAssets = [...assets].reverse();
+
+  const filtered = sortedAssets.filter(a => {
     const q = search.toLowerCase();
     return (a.assetName.toLowerCase().includes(q) || a.assetId.toLowerCase().includes(q))
       && (status === 'All Status' || a.status === status);
@@ -213,7 +219,7 @@ const statTiles = [
   const submitIssue = async () => {
 
     if(!issueText.trim()) {
-      alert("Please describe the issue");
+      errorToast("Please describe the issue");
       return;
     }
 
@@ -226,7 +232,7 @@ const statTiles = [
 
       });
 
-      alert("Issue reported successfully");
+      successToast("Issue reported successfully");
 
       setShowIssueModal(false);
       setIssueText("");
@@ -237,7 +243,7 @@ const statTiles = [
     } catch(err){
 
       console.error(err);
-      alert("Error submitting issue");
+      errorToast("Error submitting issue");
 
     }
 

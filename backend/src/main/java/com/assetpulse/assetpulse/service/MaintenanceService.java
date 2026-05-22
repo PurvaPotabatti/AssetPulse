@@ -17,15 +17,17 @@ public class MaintenanceService {
     private final MaintenanceRepository maintenanceRepository;
     private final AssignmentRepository assignmentRepository;
     private final AssetRepository assetRepository;
+    private final NotificationService notificationService;
 
     public MaintenanceService(
             MaintenanceRepository maintenanceRepository,
             AssignmentRepository assignmentRepository,
-            AssetRepository assetRepository
+            AssetRepository assetRepository, NotificationService notificationService
     ) {
         this.maintenanceRepository = maintenanceRepository;
         this.assignmentRepository = assignmentRepository;
         this.assetRepository = assetRepository;
+        this.notificationService = notificationService;
     }
 
 
@@ -76,7 +78,33 @@ public class MaintenanceService {
         request.setAssignedTo(null);
         request.setCost(null);
 
-        return maintenanceRepository.save(request);
+        request.setCreatedAt(
+                java.time.LocalDateTime.now()
+        );
+
+        MaintenanceRequest savedRequest =
+                maintenanceRepository.save(request);
+
+        /*
+            CREATE ADMIN NOTIFICATION
+         */
+        notificationService.createNotification(
+
+                assignment.getAdminId(),
+
+                "New Maintenance Request",
+
+                assignment.getEmployeeName()
+                        + " reported issue for "
+                        + assignment.getAssetName(),
+
+                "MAINTENANCE_REQUEST",
+
+                savedRequest.getId()
+
+        );
+
+        return savedRequest;
     }
 
 
@@ -139,17 +167,23 @@ public class MaintenanceService {
 
             case "RESOLVED":
 
-            /*
-               asset goes back to employee
-             */
-
                 asset.setStatus("ASSIGNED");
+
+                notificationService
+                        .deactivateMaintenanceNotification(
+                                request.getId()
+                        );
 
                 break;
 
             case "REJECTED":
 
                 asset.setStatus("ASSIGNED");
+
+                notificationService
+                        .deactivateMaintenanceNotification(
+                                request.getId()
+                        );
 
                 break;
 

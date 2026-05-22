@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../api/axiosConfig";
 import { useAuth } from "../context/AuthContext";
+import { successToast, errorToast } from "../utils/toastUtils";
 
 /* SVG icons */
 const Icon = {
@@ -114,7 +115,7 @@ const handleSubmit = async (e) => {
     localStorage.setItem("role", user.role);
     localStorage.setItem("token", user.token);
 
-    alert("Login successful");
+    successToast("Login successful");
 
     /*
       redirect based on role
@@ -137,10 +138,7 @@ const handleSubmit = async (e) => {
 
     console.error(error);
 
-    alert(
-      error.response?.data?.message ||
-      "Invalid email or password"
-    );
+    errorToast(error.response?.data?.message || "Login failed")
 
   }
 

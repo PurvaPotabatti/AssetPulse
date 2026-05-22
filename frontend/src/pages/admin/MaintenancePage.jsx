@@ -7,6 +7,10 @@ import axios from "axios";
 import { statusStyles, statusLabels } from "../../utils/statusUtils";
 import API from "../../api/axiosConfig";
 import { priorityStyles } from "../../utils/priorityUtils";
+import {
+  successToast,
+  errorToast
+} from "../../utils/toastUtils";
 
 const statusStyle = {
   Requested: { color: 'hsl(214,80%,46%)', background: 'hsl(214,80%,94%)', border: '1.5px solid hsl(214,70%,80%)' },
@@ -248,6 +252,8 @@ const ViewModal = ({ record, onClose }) => (
   </div>
 );
 
+const PAGE_SIZE = 5;
+
 const PRIORITIES = [
   "All Priority",
   "NOT_ASSIGNED",
@@ -266,7 +272,7 @@ const MaintenancePage = () => {
   const [priority, setPriority] = useState('All Priority');
   const [modal,    setModal]    = useState(null);
   const [assets, setAssets] = useState([]);
-
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
 
@@ -292,6 +298,7 @@ const MaintenancePage = () => {
       catch(err){
 
         console.error(err);
+        errorToast("Failed to load maintenance records");
 
       }
 
@@ -301,7 +308,9 @@ const MaintenancePage = () => {
 
   }, []); 
 
-  const filtered = records.filter(r => {
+  const sortedRecords = [...records].reverse();
+
+  const filtered = sortedRecords.filter(r => {
 
     const q = search.toLowerCase();
 
@@ -322,6 +331,19 @@ const MaintenancePage = () => {
     return matchSearch && matchStatus && matchPriority;
 
   });
+
+  /* Pagination */
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filtered.length / PAGE_SIZE)
+  );
+
+  const safePage = Math.min(page, totalPages);
+
+  const paginated = filtered.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE
+  );
 
 const activeMaintenanceAssetIds = records
   .filter(r =>
@@ -385,15 +407,31 @@ const activeMaintenanceAssetIds = records
       };
 
       await API.post("/maintenance/schedule", payload);
+      successToast(
+        form.id
+          ? "Maintenance updated successfully"
+          : "Maintenance scheduled successfully"
+      );
 
       setModal(null);
 
-      window.location.reload();
+      const maintenanceRes = await API.get("/maintenance");
+
+      setRecords(maintenanceRes.data);
+
+      const assetsRes = await API.get("/assets");
+
+      setAssets(assetsRes.data);
 
     }
     catch(err){
 
       console.error("error saving maintenance", err);
+
+      errorToast(
+        err.response?.data?.message ||
+        "Failed to save maintenance record"
+      );
 
     }
 
@@ -416,14 +454,20 @@ const activeMaintenanceAssetIds = records
         <div className="ap-search-wrap">
           <Search size={16} className="ap-search-icon" />
           <input className="ap-search-input" placeholder="Search maintenance..."
-            value={search} onChange={e => setSearch(e.target.value)} />
+            value={search} onChange={e => {
+            setSearch(e.target.value);
+            setPage(1);
+          }} />
         </div>
         {[
           { val: status,   set: setStatus,   opts: STATUSES,   placeholder: 'All Status'   },
           { val: priority, set: setPriority, opts: PRIORITIES, placeholder: 'All Priority' },
         ].map(({ val, set, opts }) => (
           <div key={opts[0]} className="ap-select-wrap">
-            <select className="ap-select" value={val} onChange={e => set(e.target.value)}>
+            <select className="ap-select" value={val} onChange={e => {
+              set(e.target.value);
+              setPage(1);
+            }}>
               {opts.map(o => <option key={o}>{o}</option>)}
             </select>
             <ChevronDown size={15} className="ap-select-icon" />
@@ -444,7 +488,7 @@ const activeMaintenanceAssetIds = records
           <tbody>
             {filtered.length === 0 ? (
               <tr><td colSpan={9} className="ap-empty">No maintenance records found.</td></tr>
-            ) : filtered.map((r, i) => (
+            ) : paginated.map((r, i) => (
               <tr key={r.id} className={`ap-tr ${i % 2 === 1 ? 'ap-tr-alt' : ''}`}>
 
                 {/* Asset Name + icon */}
@@ -494,6 +538,51 @@ const activeMaintenanceAssetIds = records
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Pagination */}
+      <div className="ma-pagination">
+
+        {/* Left */}
+        <div className="ma-pag-left">
+
+          <button
+            className="ma-pag-arrow"
+            disabled={safePage === 1}
+            onClick={() =>
+              setPage(p => Math.max(1, p - 1))
+            }
+          >
+            ←
+          </button>
+
+          <span className="ma-pag-dot">•</span>
+
+          <span className="ma-pag-total">
+            {filtered.length}
+          </span>
+
+          <button
+            className="ma-pag-arrow"
+            disabled={safePage === totalPages}
+            onClick={() =>
+              setPage(p => Math.min(totalPages, p + 1))
+            }
+          >
+            →
+          </button>
+
+        </div>
+
+        {/* Right */}
+        <div className="ma-pag-right">
+
+          <span className="ma-pag-info">
+            {safePage} of {totalPages}
+          </span>
+
+        </div>
+
       </div>
 
       {/* Modals */}

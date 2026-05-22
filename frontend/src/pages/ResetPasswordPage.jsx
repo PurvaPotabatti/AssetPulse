@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import API from "../api/axiosConfig";
+import { successToast, errorToast } from "../utils/toastUtils";
 
 const ResetPasswordPage = () => {
 
@@ -33,8 +34,7 @@ const ResetPasswordPage = () => {
     */
     setErrors(prev => ({
       ...prev,
-      [id]: "",
-      general: ""
+      [id]: ""
     }));
 
   };
@@ -94,7 +94,7 @@ const ResetPasswordPage = () => {
         }
       );
 
-      alert("Password reset successful");
+      successToast("Password reset successful");
 
       navigate("/login");
 
@@ -103,11 +103,10 @@ const ResetPasswordPage = () => {
 
       console.error(err);
 
-      setErrors({
-        general:
-          err.response?.data?.message ||
-          "Reset link is invalid or expired"
-      });
+      errorToast(
+        err.response?.data?.message ||
+        "Reset link is invalid or expired"
+      );
 
     }
     finally {
@@ -195,14 +194,6 @@ const ResetPasswordPage = () => {
             )}
 
           </div>
-
-          {errors.general && (
-
-            <p className="error-text">
-              {errors.general}
-            </p>
-
-          )}
 
           <button
             className="register-btn"

@@ -2,7 +2,6 @@ package com.assetpulse.assetpulse.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.time.LocalDateTime;
 
 @Document(collection = "maintenance_requests")

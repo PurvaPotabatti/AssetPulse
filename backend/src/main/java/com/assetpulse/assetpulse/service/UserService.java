@@ -2,6 +2,9 @@
 
     import com.assetpulse.assetpulse.dto.AuthResponse;
     import com.assetpulse.assetpulse.dto.CreateUserRequest;
+    import com.assetpulse.assetpulse.dto.ProfileResponse;
+    import com.assetpulse.assetpulse.dto.UpdateProfileRequest;
+    import com.assetpulse.assetpulse.dto.ChangePasswordRequest;
     import com.assetpulse.assetpulse.model.Role;
     import com.assetpulse.assetpulse.model.User;
     import com.assetpulse.assetpulse.repository.RoleRepository;
@@ -10,6 +13,7 @@
     import org.springframework.beans.factory.annotation.Value;
     import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
     import org.springframework.stereotype.Service;
+
 
     import java.time.LocalDateTime;
     import java.util.List;
@@ -271,6 +275,165 @@
                         "RESEND INVITE FAILED: " + e.getMessage()
                 );
             }
+        }
+
+        public ProfileResponse getCurrentUserProfile(String userId) {
+
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            Role role = roleRepository.findById(user.getRoleId())
+                    .orElseThrow(() -> new RuntimeException("Role not found"));
+
+            return new ProfileResponse(
+
+                    user.getId(),
+
+                    user.getEmployeeId(),
+
+                    user.getName(),
+
+                    user.getEmail(),
+
+                    user.getPhone(),
+
+                    role.getRoleName(),
+
+                    user.getDepartment(),
+
+                    user.getDesignation(),
+
+                    user.getStatus(),
+
+                    user.getCreatedAt()
+            );
+        }
+
+        public ProfileResponse updateCurrentUserProfile(
+
+                String userId,
+                UpdateProfileRequest request
+
+        ) {
+
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+    /*
+        Update allowed fields only
+     */
+
+            user.setName(request.getName());
+
+            user.setPhone(request.getPhone());
+
+            user.setUpdatedAt(LocalDateTime.now());
+
+            userRepository.save(user);
+
+            Role role = roleRepository.findById(user.getRoleId())
+                    .orElseThrow(() -> new RuntimeException("Role not found"));
+
+            return new ProfileResponse(
+
+                    user.getId(),
+
+                    user.getEmployeeId(),
+
+                    user.getName(),
+
+                    user.getEmail(),
+
+                    user.getPhone(),
+
+                    role.getRoleName(),
+
+                    user.getDepartment(),
+
+                    user.getDesignation(),
+
+                    user.getStatus(),
+
+                    user.getCreatedAt()
+            );
+        }
+
+        public String changePassword(
+
+                String userId,
+                ChangePasswordRequest request
+
+        ) {
+
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+    /*
+        Verify current password
+     */
+
+            boolean matches = passwordEncoder.matches(
+
+                    request.getCurrentPassword(),
+
+                    user.getPasswordHash()
+
+            );
+
+            if (!matches) {
+
+                throw new RuntimeException("Current password is incorrect");
+
+            }
+
+    /*
+        Check new password confirmation
+     */
+
+            if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+
+                throw new RuntimeException("New passwords do not match");
+
+            }
+
+    /*
+        Prevent same password reuse
+     */
+
+            boolean samePassword = passwordEncoder.matches(
+
+                    request.getNewPassword(),
+
+                    user.getPasswordHash()
+
+            );
+
+            if (samePassword) {
+
+                throw new RuntimeException(
+                        "New password cannot be same as current password"
+                );
+
+            }
+
+    /*
+        Encode and save new password
+     */
+
+            user.setPasswordHash(
+
+                    passwordEncoder.encode(
+                            request.getNewPassword()
+                    )
+
+            );
+
+            user.setUpdatedAt(LocalDateTime.now());
+
+            userRepository.save(user);
+
+            return "Password updated successfully";
+
         }
 
     }

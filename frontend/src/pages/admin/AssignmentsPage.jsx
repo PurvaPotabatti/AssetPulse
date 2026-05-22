@@ -10,6 +10,10 @@ import {
   statusStyles,
   statusLabels
 } from "../../utils/statusUtils";
+import {
+  successToast,
+  errorToast
+} from "../../utils/toastUtils";
 
 /* ── Asset category icon map ── */
 const CategoryIcon = ({ category }) => {
@@ -32,6 +36,7 @@ const CategoryIcon = ({ category }) => {
 
 
 const STATUSES = ['All Status', 'ASSIGNED', 'RETURNED'];
+const PAGE_SIZE = 5;
 
 
 const conditionStyle = {
@@ -326,6 +331,7 @@ const AssignmentsPage = () => {
   const [modal,       setModal]       = useState(null); // null | 'add' | { type:'view'|'edit', data }
   const [assets, setAssets] = useState([]);
   const [employees, setEmployees] = useState([]);
+  const [page, setPage] = useState(1);
   const { user } = useAuth();
 
 
@@ -381,6 +387,7 @@ const AssignmentsPage = () => {
     catch(err) {
 
       console.error("Error fetching assignments", err);
+      errorToast("Failed to load assignments");
 
     }
 
@@ -406,6 +413,7 @@ const AssignmentsPage = () => {
     catch(err) {
 
       console.error("Error fetching assets", err);
+      errorToast("Failed to load assets");
 
     }
 
@@ -431,12 +439,15 @@ const AssignmentsPage = () => {
     catch(err) {
 
       console.error("Error fetching employees", err);
+      errorToast("Failed to load employees");
 
     }
 
   };  
 
-  const filtered = assignments.filter(a => {
+  const sortedAssignments = [...assignments].reverse();
+
+  const filtered = sortedAssignments.filter(a => {
     const q = search.toLowerCase();
     const matchSearch  = a.assetName.toLowerCase().includes(q) ||
                          a.assetId.toLowerCase().includes(q)   ||
@@ -445,6 +456,19 @@ const AssignmentsPage = () => {
     const matchStatus  = status   === 'All Status'    || a.status   === status;
     return matchSearch && matchEmp && matchStatus;
   });
+
+  /* Pagination */
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filtered.length / PAGE_SIZE)
+  );
+
+  const safePage = Math.min(page, totalPages);
+
+  const paginated = filtered.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE
+  );
 
   const handleSave = async (form) => {
 
@@ -504,6 +528,7 @@ const AssignmentsPage = () => {
       */
 
       fetchAssets();
+      successToast("Asset assigned successfully");
 
       setModal(null);
 
@@ -531,6 +556,11 @@ const AssignmentsPage = () => {
 
       console.error("Return failed", err);
 
+      errorToast(
+        err.response?.data?.message ||
+        "Failed to return asset"
+      );
+
     }
 
   };
@@ -552,10 +582,16 @@ const AssignmentsPage = () => {
         <div className="ap-search-wrap">
           <Search size={16} className="ap-search-icon" />
           <input className="ap-search-input" placeholder="Search assignments..."
-            value={search} onChange={e => setSearch(e.target.value)} />
+            value={search} onChange={e => {
+            setSearch(e.target.value);
+            setPage(1);
+          }} />
         </div>
         <div className="ap-select-wrap">
-          <select className="ap-select" value={employee} onChange={e => setEmployee(e.target.value)}>
+          <select className="ap-select" value={employee} onChange={e => {
+            setEmployee(e.target.value);
+            setPage(1);
+          }}>
             <option>All Employees</option>
 
             {employees.map(e => (
@@ -571,7 +607,10 @@ const AssignmentsPage = () => {
           <ChevronDown size={15} className="ap-select-icon" />
         </div>
         <div className="ap-select-wrap">
-          <select className="ap-select" value={status} onChange={e => setStatus(e.target.value)}>
+          <select className="ap-select" value={status} onChange={e => {
+            setStatus(e.target.value);
+            setPage(1);
+          }}>
             {STATUSES.map(s => <option key={s}>{s}</option>)}
           </select>
           <ChevronDown size={15} className="ap-select-icon" />
@@ -591,7 +630,7 @@ const AssignmentsPage = () => {
           <tbody>
             {filtered.length === 0 ? (
               <tr><td colSpan={8} className="ap-empty">No assignments found.</td></tr>
-            ) : filtered.map((a, i) => (
+            ) : paginated.map((a, i) => (
               <tr key={a.id} className={`ap-tr ${i % 2 === 1 ? 'ap-tr-alt' : ''}`}>
 
                 {/* Asset Name with icon */}
@@ -646,6 +685,51 @@ const AssignmentsPage = () => {
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Pagination */}
+      <div className="ma-pagination">
+
+        {/* Left */}
+        <div className="ma-pag-left">
+
+          <button
+            className="ma-pag-arrow"
+            disabled={safePage === 1}
+            onClick={() =>
+              setPage(p => Math.max(1, p - 1))
+            }
+          >
+            ←
+          </button>
+
+          <span className="ma-pag-dot">•</span>
+
+          <span className="ma-pag-total">
+            {filtered.length}
+          </span>
+
+          <button
+            className="ma-pag-arrow"
+            disabled={safePage === totalPages}
+            onClick={() =>
+              setPage(p => Math.min(totalPages, p + 1))
+            }
+          >
+            →
+          </button>
+
+        </div>
+
+        {/* Right */}
+        <div className="ma-pag-right">
+
+          <span className="ma-pag-info">
+            {safePage} of {totalPages}
+          </span>
+
+        </div>
+
       </div>
 
       {/* Modals */}

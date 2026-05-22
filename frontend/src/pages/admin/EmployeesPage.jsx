@@ -2,8 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { Search, ChevronDown, Plus, Pencil, Trash2, Mail } from 'lucide-react';
 import API from "../../api/axiosConfig";
 import { useAuth } from "../../context/AuthContext";
+import {
+  successToast,
+  errorToast
+} from "../../utils/toastUtils";
 
 const STATUSES    = ['All Status', 'Invited', 'Active', 'Inactive'];
+const PAGE_SIZE = 5;
 
 const statusStyle = {
   Active:   { color: 'hsl(145,60%,35%)', background: 'hsl(145,55%,93%)', border: '1px solid hsl(145,55%,80%)' },
@@ -172,6 +177,7 @@ const EmployeesPage = () => {
   const [search, setSearch]       = useState('');
   const [status, setStatus]       = useState('All Status');
   const [modal, setModal]         = useState(null);
+  const [page, setPage] = useState(1);
   const { user } = useAuth();
  
     useEffect(() => {
@@ -207,12 +213,15 @@ const fetchEmployees = async () => {
   catch(err) {
 
     console.error(err);
+    errorToast("Failed to load employees");
 
   }
 
 };
 
-const filtered = employees.filter(e => {
+const sortedEmployees = [...employees].reverse();
+
+const filtered = sortedEmployees.filter(e => {
 
   const matchSearch =
     e.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -225,6 +234,19 @@ const filtered = employees.filter(e => {
   return matchSearch && matchStatus;
 
 });
+
+/* Pagination */
+const totalPages = Math.max(
+  1,
+  Math.ceil(filtered.length / PAGE_SIZE)
+);
+
+const safePage = Math.min(page, totalPages);
+
+const paginated = filtered.slice(
+  (safePage - 1) * PAGE_SIZE,
+  safePage * PAGE_SIZE
+);
 
 const handleSave = async (form) => {
 
@@ -247,8 +269,9 @@ const handleSave = async (form) => {
 
       });
 
-      alert("Employee invited successfully. An email with activation instructions has been sent.");
-
+      successToast(
+        "Employee invited successfully. Invitation email sent."
+      );
     }
 
     /*
@@ -265,6 +288,8 @@ const handleSave = async (form) => {
                   ? "ACTIVE"
                   : "INACTIVE"
       });
+
+      successToast("Employee updated successfully");
     }
 
     fetchEmployees();
@@ -283,15 +308,15 @@ const handleSave = async (form) => {
 
     if (message.includes("Email already exists")) {
 
-      alert("Employee already exists with this email");
+      errorToast("Employee already exists with this email");
 
     } else if (err.response?.status === 403) {
 
-      alert("Session expired. Please login again");
+      errorToast("Session expired. Please login again");
 
     } else {
 
-      alert("Something went wrong while adding employee");
+      errorToast("Something went wrong while saving employee");
 
     }
   }
@@ -303,14 +328,14 @@ const handleDelete = async (id) => {
   try {
 
     await API.delete(`/users/${id}`);
-
     fetchEmployees();
+    successToast("Employee deleted successfully");
 
   }
   catch(err) {
 
     console.error(err);
-
+    errorToast("Failed to delete employee");
   }
 
 };
@@ -321,13 +346,13 @@ const handleResendInvite = async (id) => {
 
     await API.post(`/users/resend-invite/${id}`);
 
-    alert("Invite email resent successfully");
+    successToast("Invite email resent successfully");
 
   } catch (err) {
 
     console.error(err);
 
-    alert("Failed to resend invite");
+    errorToast("Failed to resend invite");
 
   }
 
@@ -353,12 +378,18 @@ const handleResendInvite = async (id) => {
             className="ap-search-input"
             placeholder="Search employees..."
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={e => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
           />
         </div>
 
         <div className="ap-select-wrap">
-          <select className="ap-select" value={status} onChange={e => setStatus(e.target.value)}>
+          <select className="ap-select" value={status} onChange={e => {
+            setStatus(e.target.value);
+            setPage(1);
+          }}>
             {STATUSES.map(s => <option key={s}>{s}</option>)}
           </select>
           <ChevronDown size={15} className="ap-select-icon" />
@@ -380,7 +411,7 @@ const handleResendInvite = async (id) => {
               <tr>
                 <td colSpan={7} className="ap-empty">No employees found.</td>
               </tr>
-            ) : filtered.map((emp, i) => {
+            ) : paginated.map((emp, i) => {
               const { local, domain } = truncateEmail(emp.email);
               return (
                 <tr key={emp.id} className={`ap-tr ${i % 2 === 1 ? 'ap-tr-alt' : ''}`}>
@@ -427,6 +458,51 @@ const handleResendInvite = async (id) => {
             })}
           </tbody>
         </table>
+      </div>
+
+      {/* Pagination */}
+      <div className="ma-pagination">
+
+        {/* Left */}
+        <div className="ma-pag-left">
+
+          <button
+            className="ma-pag-arrow"
+            disabled={safePage === 1}
+            onClick={() =>
+              setPage(p => Math.max(1, p - 1))
+            }
+          >
+            ←
+          </button>
+
+          <span className="ma-pag-dot">•</span>
+
+          <span className="ma-pag-total">
+            {filtered.length}
+          </span>
+
+          <button
+            className="ma-pag-arrow"
+            disabled={safePage === totalPages}
+            onClick={() =>
+              setPage(p => Math.min(totalPages, p + 1))
+            }
+          >
+            →
+          </button>
+
+        </div>
+
+        {/* Right */}
+        <div className="ma-pag-right">
+
+          <span className="ma-pag-info">
+            {safePage} of {totalPages}
+          </span>
+
+        </div>
+
       </div>
 
       {/* ── Modal ── */}

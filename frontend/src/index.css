@@ -4028,3 +4028,443 @@ gap:10px;
 .ap-resend-btn:hover {
   background: #eef2ff;
 }
+
+/* =========================
+   AssetPulse Button Styles
+========================= */
+
+.ap-btn {
+
+  border: none;
+
+  outline: none;
+
+  cursor: pointer;
+
+  padding: 10px 18px;
+
+  border-radius: 10px;
+
+  font-size: 14px;
+
+  font-weight: 500;
+
+  transition: all 0.2s ease;
+
+}
+
+.ap-btn-primary {
+
+  background: hsl(214, 80%, 51%);
+
+  color: white;
+
+  box-shadow: 0 4px 12px hsla(214, 80%, 51%, 0.18);
+
+}
+
+.ap-btn-primary:hover {
+
+  background: hsl(214, 80%, 46%);
+
+}
+
+.ap-btn-secondary {
+
+  background: #eef1f4;
+
+  color: #333;
+
+}
+
+.ap-btn-secondary:hover {
+
+  background: #dde2e7;
+
+}
+
+/* =========================
+   Profile Edit Inputs
+========================= */
+
+.pf-edit-input {
+
+  width: 100%;
+
+  max-width: 220px;
+
+  padding: 10px 12px;
+
+  border: 1px solid #d6dbe1;
+
+  border-radius: 8px;
+
+  background: white;
+
+  font-size: 14px;
+
+  color: #1f2937;
+
+  transition: all 0.2s ease;
+
+}
+
+.pf-edit-input:focus {
+
+  outline: none;
+
+  border-color: hsl(214, 80%, 51%);
+
+  box-shadow: 0 0 0 3px hsla(214, 80%, 51%, 0.12);
+
+}
+
+/* =========================
+   PROFILE SECURITY SECTION
+========================= */
+
+.pf-security-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.pf-password-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pf-password-form .pf-edit-input {
+  width: 100%;
+  max-width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid #d6dce5;
+  border-radius: 10px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  background: #fff;
+}
+
+.pf-password-form .pf-edit-input:focus {
+  outline: none;
+  border-color: hsl(214,80%,51%);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.pf-password-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+/* Security card spacing */
+.pf-card {
+  padding: 22px;
+}
+
+/* =========================
+   PROFILE RESPONSIVE
+========================= */
+
+.pf-body {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.pf-card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.pf-right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  flex: 1;
+}
+
+.pf-body > .pf-card:first-child {
+  flex: 1.2;
+}
+
+.pf-header-card {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.pf-header-info {
+  display: flex;
+  flex-direction: column;
+}
+
+/* =========================
+   TABLE RESPONSIVE
+========================= */
+
+.pf-info-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.pf-info-row td {
+  padding: 16px 22px;
+  border-top: 1px solid #edf0f5;
+}
+
+.pf-info-label {
+  font-weight: 500;
+  color: hsl(214,80%,51%);
+  width: 38%;
+}
+
+.pf-info-value {
+  color: #111827;
+  word-break: break-word;
+}
+
+/* =========================
+   MOBILE RESPONSIVE
+========================= */
+
+@media (max-width: 1024px) {
+
+  .pf-body {
+    flex-direction: column;
+  }
+
+  .pf-right-col {
+    width: 100%;
+  }
+
+}
+
+@media (max-width: 768px) {
+
+  .pf-page {
+    padding: 14px;
+  }
+
+  .pf-header-card {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 18px;
+  }
+
+  .pf-header-info {
+    align-items: center;
+  }
+
+  .pf-body {
+    flex-direction: column;
+  }
+
+  .pf-card {
+    width: 100%;
+  }
+
+  .pf-info-row {
+    display: flex;
+    flex-direction: column;
+    padding: 12px 16px;
+  }
+
+  .pf-info-row td {
+    border: none;
+    padding: 4px 0;
+  }
+
+  .pf-info-label {
+    width: 100%;
+    font-size: 13px;
+  }
+
+  .pf-info-value {
+    font-size: 14px;
+  }
+
+  .pf-password-actions {
+    flex-direction: column;
+  }
+
+  .pf-password-actions button {
+    width: 100%;
+  }
+
+  .ap-btn {
+    width: 100%;
+  }
+
+}
+
+@media (max-width: 480px) {
+
+  .pf-avatar {
+    width: 72px;
+    height: 72px;
+    font-size: 24px !important;
+  }
+
+  .pf-name {
+    font-size: 24px;
+  }
+
+  .pf-role-text {
+    font-size: 14px;
+  }
+
+  .pf-edit-input {
+    width: 100%;
+  }
+
+}
+
+/* =========================
+   TOPBAR NOTIFICATIONS
+========================= */
+
+.topbar-notification-wrapper {
+  position: relative;
+}
+
+.topbar-bell-btn {
+  position: relative;
+
+  width: 42px;
+  height: 42px;
+
+  border: 1px solid hsl(214, 32%, 91%);
+  border-radius: 12px;
+
+  background: white;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+.topbar-bell-btn:hover {
+  background: hsl(214, 40%, 97%);
+  border-color: hsl(214, 45%, 85%);
+}
+
+.topbar-bell-btn svg {
+  color: hsl(214, 22%, 35%);
+}
+
+.topbar-notification-badge {
+  position: absolute;
+
+  top: -5px;
+  right: -4px;
+
+  min-width: 18px;
+  height: 18px;
+
+  padding: 0 5px;
+
+  border-radius: 999px;
+
+  background: hsl(0, 84%, 60%);
+  color: white;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 2px solid white;
+}
+
+.topbar-notification-dropdown {
+  position: absolute;
+
+  top: 52px;
+  right: 0;
+
+  width: 340px;
+
+  background: white;
+
+  border: 1px solid hsl(214, 32%, 91%);
+  border-radius: 16px;
+
+  box-shadow:
+    0 10px 30px rgba(15, 23, 42, 0.08);
+
+  overflow: hidden;
+
+  z-index: 999;
+}
+
+.topbar-notification-header {
+  padding: 16px 18px;
+
+  border-bottom: 1px solid hsl(214, 25%, 93%);
+
+  font-size: 15px;
+  font-weight: 700;
+
+  color: hsl(222, 47%, 18%);
+
+  background: hsl(214, 35%, 98%);
+}
+
+.topbar-notification-list {
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.topbar-notification-item {
+
+  padding: 14px 18px;
+
+  border-bottom: 1px solid hsl(214, 22%, 94%);
+
+  cursor: default;
+
+}
+
+.topbar-notification-item.unread {
+  background: hsl(214, 90%, 97%);
+}
+
+.topbar-notification-title {
+  font-size: 14px;
+  font-weight: 600;
+
+  color: hsl(222, 47%, 18%);
+
+  margin-bottom: 5px;
+}
+
+.topbar-notification-message {
+  font-size: 13px;
+  line-height: 1.45;
+
+  color: hsl(215, 16%, 42%);
+}
+
+.topbar-notification-empty {
+  padding: 30px 20px;
+
+  text-align: center;
+
+  color: hsl(215, 14%, 55%);
+  font-size: 14px;
+}

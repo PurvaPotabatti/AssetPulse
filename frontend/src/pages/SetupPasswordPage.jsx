@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import API from "../api/axiosConfig";
+import { successToast, errorToast } from "../utils/toastUtils";
 
 const SetupPasswordPage = () => {
 
@@ -64,7 +65,7 @@ const SetupPasswordPage = () => {
         password: form.password
       });
 
-      alert("Account activated successfully");
+      successToast("Account activated successfully");
 
       navigate("/login");
 
@@ -72,11 +73,10 @@ const SetupPasswordPage = () => {
 
       console.error(err);
 
-      setErrors({
-        general:
-          err.response?.data?.message ||
-          "This invite link has expired. Please contact your admin for a new invitation."
-      });
+      errorToast(
+        err.response?.data?.message ||
+        "This invite link has expired. Please contact your admin for a new invitation."
+      );
     }
   };
 
@@ -144,9 +144,6 @@ const SetupPasswordPage = () => {
 
           </div>
 
-          {errors.general && (
-            <p className="error-text">{errors.general}</p>
-          )}
 
           <button
             className="register-btn"

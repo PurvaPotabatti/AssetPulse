@@ -65,14 +65,23 @@ const Sidebar = ({ activeNav = 'dashboard', onNavChange, onLogout, user, isOpen,
 
       {/* Profile */}
       <div className="sidebar-profile">
-        <img
+        <div
           className="sidebar-avatar"
-          src={user?.avatar || 'https://i.pravatar.cc/80?img=12'}
-          alt="avatar"
-        />
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "hsl(214,80%,51%)",
+            color: "white",
+            fontWeight: "600",
+            fontSize: "20px"
+          }}
+        >
+          {(user?.name?.charAt(0) || "U").toUpperCase()}
+        </div>
         <div className="sidebar-profile-info">
-          <span className="sidebar-profile-name">{user?.name || 'John Admin'}</span>
-          <span className="sidebar-profile-role">{user?.role || 'Administrator'}</span>
+          <span className="sidebar-profile-name">{user?.name || 'User'}</span>
+          <span className="sidebar-profile-role">{user?.role || 'Role'}</span>
         </div>
       </div>
 

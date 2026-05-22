@@ -5,6 +5,10 @@ import {
   statusStyles,
   statusLabels
 } from "../../utils/statusUtils";
+import {
+  successToast,
+  errorToast
+} from "../../utils/toastUtils";
 
 const STATUSES = [
   'All Status',
@@ -13,7 +17,7 @@ const STATUSES = [
   'IN_MAINTENANCE'
 ];
 
-
+const PAGE_SIZE = 5;
 
 /* ── Modal ── */
 const AssetModal = ({ asset, onClose, onSave }) => {
@@ -177,6 +181,7 @@ const AssetsPage = () => {
   const [category, setCategory]     = useState('All Categories');
   const [status, setStatus]         = useState('All Status');
   const [modal, setModal]           = useState(null); // null | 'add' | asset-object
+  const [page, setPage] = useState(1);
   
   const categories = [
     "All Categories",
@@ -202,12 +207,15 @@ const fetchAssets = async () => {
   catch (error) {
 
     console.error("Error fetching assets", error);
+    errorToast("Failed to load assets");
 
   }
 
 };
 
-  const filtered = assets.filter(a => {
+  const sortedAssets = [...assets].reverse();
+
+  const filtered = sortedAssets.filter(a => {
 
     const assetStatusUI =
       a.status?.charAt(0) + a.status?.slice(1).toLowerCase();
@@ -228,6 +236,19 @@ const fetchAssets = async () => {
 
   });
 
+  /* Pagination */
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filtered.length / PAGE_SIZE)
+  );
+
+  const safePage = Math.min(page, totalPages);
+
+  const paginated = filtered.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE
+  );
+
   const handleSave = async (form) => {
 
     try {
@@ -240,11 +261,13 @@ const fetchAssets = async () => {
           prev.map(a => a.id === form.id ? res.data : a)
         );
 
+        successToast("Asset updated successfully");
+
       } else {
 
         const res = await API.post("/assets", form);
-
         setAssets(prev => [...prev, res.data]);
+        successToast("Asset created successfully");
 
       }
 
@@ -252,7 +275,7 @@ const fetchAssets = async () => {
 
     } catch (err) {
 
-      console.error("Error saving asset", err);
+      errorToast("Failed to save asset");
 
     }
 
@@ -265,12 +288,12 @@ const fetchAssets = async () => {
     try {
 
       await API.delete(`/assets/${id}`);
-
       setAssets(prev => prev.filter(a => a.id !== id));
+      successToast("Asset deleted successfully");
 
     } catch (err) {
 
-      console.error("Error deleting asset", err);
+      errorToast("Failed to delete asset");
 
     }
 
@@ -296,19 +319,28 @@ const fetchAssets = async () => {
             className="ap-search-input"
             placeholder="Search assets..."
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={e => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
           />
         </div>
 
         <div className="ap-select-wrap">
-          <select className="ap-select" value={category} onChange={e => setCategory(e.target.value)}>
+          <select className="ap-select" value={category} onChange={e => {
+            setCategory(e.target.value);
+            setPage(1);
+          }}>
             {categories.map(c => <option key={c}>{c}</option>)}
           </select>
           <ChevronDown size={15} className="ap-select-icon" />
         </div>
 
         <div className="ap-select-wrap">
-          <select className="ap-select" value={status} onChange={e => setStatus(e.target.value)}>
+          <select className="ap-select" value={status} onChange={e => {
+            setStatus(e.target.value);
+            setPage(1);
+          }}>
             {STATUSES.map(s => <option key={s}>{s}</option>)}
           </select>
           <ChevronDown size={15} className="ap-select-icon" />
@@ -330,7 +362,7 @@ const fetchAssets = async () => {
               <tr>
                 <td colSpan={7} className="ap-empty">No assets found.</td>
               </tr>
-            ) : filtered.map((a, i) => (
+            ) : paginated.map((a, i) => (
               <tr key={a.id} className={`ap-tr ${i % 2 === 1 ? 'ap-tr-alt' : ''}`}>
                 <td className="ap-td ap-td-name">{a.name}</td>
                 <td className="ap-td">{a.category || "-"}</td>
@@ -358,6 +390,51 @@ const fetchAssets = async () => {
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Pagination */}
+      <div className="ma-pagination">
+
+        {/* Left */}
+        <div className="ma-pag-left">
+
+          <button
+            className="ma-pag-arrow"
+            disabled={safePage === 1}
+            onClick={() =>
+              setPage(p => Math.max(1, p - 1))
+            }
+          >
+            ←
+          </button>
+
+          <span className="ma-pag-dot">•</span>
+
+          <span className="ma-pag-total">
+            {filtered.length}
+          </span>
+
+          <button
+            className="ma-pag-arrow"
+            disabled={safePage === totalPages}
+            onClick={() =>
+              setPage(p => Math.min(totalPages, p + 1))
+            }
+          >
+            →
+          </button>
+
+        </div>
+
+        {/* Right */}
+        <div className="ma-pag-right">
+
+          <span className="ma-pag-info">
+            {safePage} of {totalPages}
+          </span>
+
+        </div>
+
       </div>
 
       {/* ── Modal ── */}

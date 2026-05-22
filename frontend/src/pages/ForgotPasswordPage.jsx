@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../api/axiosConfig";
+import { successToast, errorToast } from "../utils/toastUtils";
 
 const ForgotPasswordPage = () => {
 
@@ -10,7 +11,6 @@ const ForgotPasswordPage = () => {
 
   const [loading, setLoading] = useState(false);
 
-  const [message, setMessage] = useState("");
 
   const [error, setError] = useState("");
 
@@ -19,7 +19,6 @@ const ForgotPasswordPage = () => {
     e.preventDefault();
 
     setError("");
-    setMessage("");
 
     if (!email.trim()) {
 
@@ -37,14 +36,14 @@ const ForgotPasswordPage = () => {
         { email }
       );
 
-      setMessage(response.data);
+      successToast(response.data);
 
     }
     catch (err) {
 
       console.error(err);
 
-      setError(
+      errorToast(
         err.response?.data?.message ||
         "Something went wrong"
       );
@@ -109,20 +108,6 @@ const ForgotPasswordPage = () => {
             )}
 
           </div>
-
-          {message && (
-
-            <p
-              style={{
-                color: "green",
-                fontSize: "14px",
-                marginBottom: "16px"
-              }}
-            >
-              {message}
-            </p>
-
-          )}
 
           <button
             className="register-btn"
