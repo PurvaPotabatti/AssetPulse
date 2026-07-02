@@ -1,14 +1,28 @@
 package com.assetpulse.assetpulse.service;
 
 import jakarta.annotation.PostConstruct;
-import lombok.Value;
-import org.springframework.mail.SimpleMailMessage;
+import org.springframework.beans.factory.annotation.Value;import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 @Service
 public class EmailService {
 
+    @Value("${spring.mail.username}")
+    private String fromEmail;
+
+    @Value("${spring.mail.host}")
+    private String host;
+
+    @Value("${spring.mail.port}")
+    private String port;
+
+    @PostConstruct
+    public void test() {
+        System.out.println("MAIL HOST = " + host);
+        System.out.println("MAIL PORT = " + port);
+        System.out.println("MAIL FROM = " + fromEmail);
+    }
 
     private final JavaMailSender mailSender;
 
@@ -20,7 +34,9 @@ public class EmailService {
 
         SimpleMailMessage message = new SimpleMailMessage();
 
-        message.setFrom("potabattipurva21@gmail.com");
+
+
+        message.setFrom(fromEmail);
         message.setTo(toEmail);
         message.setSubject("AssetPulse - Setup Your Account");
 
