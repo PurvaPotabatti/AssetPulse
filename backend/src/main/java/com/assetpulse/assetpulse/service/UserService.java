@@ -111,6 +111,7 @@
                 emailService.sendInviteEmail(user.getEmail(), inviteLink);
             } catch (Exception e) {
                 System.out.println("EMAIL FAILED: " + e.getMessage());
+                e.printStackTrace();
             }
 
             return new AuthResponse(

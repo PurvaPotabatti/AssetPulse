@@ -1,11 +1,14 @@
 package com.assetpulse.assetpulse.service;
 
+import jakarta.annotation.PostConstruct;
+import lombok.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 @Service
 public class EmailService {
+
 
     private final JavaMailSender mailSender;
 
@@ -17,6 +20,7 @@ public class EmailService {
 
         SimpleMailMessage message = new SimpleMailMessage();
 
+        message.setFrom("potabattipurva21@gmail.com");
         message.setTo(toEmail);
         message.setSubject("AssetPulse - Setup Your Account");
 
