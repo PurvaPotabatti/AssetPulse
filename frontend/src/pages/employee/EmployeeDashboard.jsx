@@ -19,7 +19,6 @@ const EmployeeDashboard = ({ user, onNavChange }) => {
   const [myRequests, setMyRequests] = useState([]);
   const [stats, setStats] = useState({
     totalAssets: 0,
-    inMaintenance: 0,
     requests: 0
   });
   const navigate = useNavigate(); 
@@ -33,14 +32,14 @@ const EmployeeDashboard = ({ user, onNavChange }) => {
     iconBg: 'hsl(214,60%,83%)',
     iconColor: 'hsl(214,80%,46%)',
   },
-  {
-    label: 'In Maintenance',
-    value: stats.inMaintenance,
-    icon: <Wrench size={22} />,
-    bg: 'hsl(38,80%,94%)',
-    iconBg: 'hsl(38,75%,83%)',
-    iconColor: 'hsl(38,80%,42%)',
-  },
+  // {
+  //   label: 'In Maintenance',
+  //   value: stats.inMaintenance,
+  //   icon: <Wrench size={22} />,
+  //   bg: 'hsl(38,80%,94%)',
+  //   iconBg: 'hsl(38,75%,83%)',
+  //   iconColor: 'hsl(38,80%,42%)',
+  // },
   {
     label: 'Active Requests',
     value: stats.requests,
@@ -142,10 +141,6 @@ const EmployeeDashboard = ({ user, onNavChange }) => {
         const totalAssets =
           assetsRes.data.length;
 
-        const inMaintenance =
-          assetsRes.data.filter(
-            a => a.status === "IN_MAINTENANCE"
-          ).length;
 
         const requests = requestsRes.data.filter(
           r => r.status === "OPEN" || r.status === "IN_PROGRESS"
@@ -153,7 +148,6 @@ const EmployeeDashboard = ({ user, onNavChange }) => {
 
         setStats({
           totalAssets,
-          inMaintenance,
           requests
         });
 
