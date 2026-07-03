@@ -49,6 +49,7 @@ const DashboardLayout = ({ role = "admin" }) => {
       : "emp-dashboard";
 
   });
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleNavChange = (key) => {
@@ -91,6 +92,7 @@ const DashboardLayout = ({ role = "admin" }) => {
       />
 
       <div className="dashboard-main">
+        
         <Topbar
           title={pageTitles[activeNav] || 'Dashboard'}
           user={user}

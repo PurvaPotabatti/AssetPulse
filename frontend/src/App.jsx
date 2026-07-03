@@ -23,15 +23,9 @@ function App() {
 
         <Route path="/login" element={<LoginPage />} />
 
-        <Route
-          path="/forgot-password"
-          element={<ForgotPasswordPage />}
-        />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
-        <Route
-          path="/reset-password"
-          element={<ResetPasswordPage />}
-        />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
         <Route path="/register" element={<RegisterPage />} />
 
@@ -43,13 +37,9 @@ function App() {
         <Route
           path="/admin/*"
           element={
-
             <ProtectedRoute allowedRole="ADMIN">
-
               <DashboardLayout role="admin" />
-
             </ProtectedRoute>
-
           }
         />
 

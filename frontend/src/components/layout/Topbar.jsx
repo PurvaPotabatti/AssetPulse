@@ -18,7 +18,6 @@ const Topbar = ({ title = 'Dashboard', user, onLogout, onMenuToggle }) => {
   React.useEffect(() => {
 
     fetchNotifications();
-
   }, []);
 
   React.useEffect(() => {

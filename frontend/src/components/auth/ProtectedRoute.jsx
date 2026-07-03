@@ -5,38 +5,22 @@ const ProtectedRoute = ({ children, allowedRole }) => {
 
   const { user, loading } = useAuth();
 
-  /*
-     wait until localStorage loads
-  */
+  /* wait until localStorage loads */
   if (loading) {
-
     return null;
-
   }
 
-
-  /*
-     not logged in
-  */
+  /* not logged in */
   if (!user) {
-
     return <Navigate to="/login" />;
-
   }
 
-
-  /*
-     wrong role
-  */
+  /* wrong role */
   if (allowedRole && user.role !== allowedRole) {
-
     return <Navigate to="/login" />;
-
   }
-
 
   return children;
-
 };
 
 export default ProtectedRoute;
