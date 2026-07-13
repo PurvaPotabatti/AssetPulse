@@ -16,11 +16,11 @@ import com.assetpulse.assetpulse.dto.ResetPasswordRequest;
 public class AuthController {
 
     private final AuthService authService;
-    private final UserService userService; // ADD THIS
+    private final UserService userService;
 
     public AuthController(
             AuthService authService,
-            UserService userService // ADD THIS
+            UserService userService
     ) {
         this.authService = authService;
         this.userService = userService;
