@@ -12,24 +12,30 @@ public class TestRunner implements CommandLineRunner {
     @Override
     public void run(String... args) {
 
-        try {
-            System.out.println("===== SMTP TEST START =====");
+        System.out.println("===== NETWORK TEST START =====");
 
-            Socket socket = new Socket();
-            socket.connect(new InetSocketAddress("smtp.gmail.com", 587), 10000);
+        testConnection("google.com", 443);
 
-            System.out.println("SUCCESS: Connected to smtp.gmail.com:587");
+        testConnection("smtp.gmail.com", 587);
 
-            socket.close();
+        testConnection("smtp.gmail.com", 465);
+
+        System.out.println("===== NETWORK TEST END =====");
+    }
+
+    private void testConnection(String host, int port) {
+
+        try (Socket socket = new Socket()) {
+
+            socket.connect(new InetSocketAddress(host, port), 10000);
+
+            System.out.println("SUCCESS -> " + host + ":" + port);
 
         } catch (Exception e) {
 
-            System.out.println("FAILED TO CONNECT");
+            System.out.println("FAILED -> " + host + ":" + port);
 
             e.printStackTrace();
-
         }
-
-        System.out.println("===== SMTP TEST END =====");
     }
 }
