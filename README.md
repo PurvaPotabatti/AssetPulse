@@ -117,14 +117,6 @@ cd frontend
 npm install
 npm run dev
 ```
----
-## Note
-
-Email invitation and password reset functionality are fully implemented and work correctly in the local development environment.
-
-Due to outbound SMTP restrictions on the free deployment platform, email delivery may not function in the live demo.
-
-All other application features are fully operational.
 
 ---
 
@@ -181,3 +173,12 @@ All other application features are fully operational.
 ### Employee Profile
 
 ![Employee Profile](screenshots/employee-profile.png)
+
+---
+## Note
+
+Email invitation and password reset functionality are fully implemented and work correctly in the local development environment.
+
+Due to outbound SMTP restrictions on the free deployment platform, email delivery may not function in the live demo.
+
+All other application features are fully operational.
