@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
-@Component
+//@Component
 public class TestRunner implements CommandLineRunner {
 
     @Override
